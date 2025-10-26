@@ -9,7 +9,7 @@ import (
 type ManagerService struct {
 	store CredentialStore
 
-	clients syncmap.Map[string, *Service]
+	clients syncmap.Map[string, *ClientService]
 }
 
 func NewManagerService(store CredentialStore, postStore PostStore) *ManagerService {

@@ -7,12 +7,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type Service struct {
+type ClientService struct {
 	scd *schd.Scheduler
 	cli *ApiClient
 }
 
-func NewService(cred *Credential, limitStore PostLimitStore, postStore PostStore) *Service {
+func NewClientService(cred *Credential, limitStore PostLimitStore, postStore PostStore) *ClientService {
 	cli := NewApiClient(cred, limitStore, postStore)
 	scd := schd.NewScheduler(
 		func() {
@@ -24,20 +24,20 @@ func NewService(cred *Credential, limitStore PostLimitStore, postStore PostStore
 		6*time.Hour,
 	)
 
-	return &Service{
+	return &ClientService{
 		cli: cli,
 		scd: scd,
 	}
 }
 
-func (s *Service) Trigger() {
+func (s *ClientService) Trigger() {
 	s.scd.Manual()
 }
 
-func (s *Service) Start() {
+func (s *ClientService) Start() {
 	s.scd.Start()
 }
 
-func (s *Service) Stop() {
+func (s *ClientService) Stop() {
 	s.scd.Stop()
 }

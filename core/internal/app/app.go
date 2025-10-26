@@ -1,46 +1,50 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
+	rmrpc "github.com/RA341/redstash/generated/reddit/v1/v1connect"
 	"github.com/RA341/redstash/internal/config"
 	"github.com/RA341/redstash/internal/database"
+	"github.com/RA341/redstash/internal/reddit"
+
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 )
 
 type App struct {
 	Config *config.AppConfig
-	DB     *database.Service
+	DB     *gorm.DB
 }
 
-func NewApp(conf *config.AppConfig) (*App, error) {
-	dbSrv := database.NewService(conf.ConfigDir)
+func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
+	db := database.NewDB(conf.ConfigDir)
+	managerStore := reddit.NewGormCredentialStore(db)
+	postStore := reddit.NewGormPostStore(db)
 
-	log.Info().Msg("Redstash initialized successfully")
-	return &App{
-		Config: conf,
-		DB:     dbSrv,
-	}, nil
-}
+	// services
+	redditManager := reddit.NewManagerService(managerStore, postStore)
 
-func (a *App) Close() error {
-	if err := a.DB.Close(); err != nil {
-		return fmt.Errorf("failed to close database service: %w", err)
-	}
+	// api
 
-	return nil
-}
-
-func (a *App) registerApiRoutes(mux *http.ServeMux) {
 	//authInterceptor := connect.WithInterceptors()
 	//if a.Config.Auth.Enable {
 	//	//authInterceptor = connect.WithInterceptors(auth.NewInterceptor(a.Auth))
 	//}
 
-	handlers := []func() (string, http.Handler){}
+	handlers := []func() (string, http.Handler){
+		func() (string, http.Handler) {
+			return rmrpc.NewRedditServiceHandler(reddit.NewHandler(redditManager))
+		},
+	}
 	for _, hand := range handlers {
 		path, handler := hand()
 		mux.Handle(path, handler)
 	}
+
+	log.Info().Msg("Redstash initialized successfully")
+	return &App{
+		Config: conf,
+		DB:     db,
+	}, nil
 }

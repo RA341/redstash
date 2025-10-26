@@ -11,7 +11,6 @@ import (
 	connectcors "connectrpc.com/cors"
 	"github.com/RA341/redstash/internal/config"
 	"github.com/RA341/redstash/internal/info"
-	"github.com/RA341/redstash/pkg/fileutil"
 	"github.com/RA341/redstash/pkg/logger"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
@@ -25,21 +24,18 @@ func init() {
 }
 
 func StartServer(opt ...config.ServerOpt) {
-
 	conf, err := config.Load(opt...)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error parsing config")
 	}
 	logger.InitConsole(conf.Log.Level, conf.Log.Verbose)
 
-	app, err := NewApp(conf)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed initializing services")
-	}
-	defer fileutil.Close(app)
-
 	router := http.NewServeMux()
-	app.registerApiRoutes(router)
+
+	_, err = SetupApp(conf, router)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed while initializing services")
+	}
 	registerFrontend(conf, router)
 
 	corsConfig := cors.New(cors.Options{

@@ -25,4 +25,4 @@ install/stacks/
 /install/docker/
 /core/internal/git/test/
 .dev/
-/core/internal/*.json
+/core/internal/**/*.json

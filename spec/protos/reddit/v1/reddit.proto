@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package reddit.v1;
+
+option go_package = "github.com/RA341/redstash/generated/reddit/v1";
+
+service RedditService {
+  rpc AddAccount(AddAccountRequest) returns (AddAccountResponse) {}
+  rpc DeleteAccount(DeleteAccountRequest) returns (DeleteAccountResponse) {}
+  rpc ListAccount(ListAccountRequest) returns (ListAccountResponse) {}
+
+  rpc RunTask(RunTaskRequest) returns (RunTaskResponse) {}
+}
+
+message RunTaskRequest {
+  string username = 1;
+}
+
+message RunTaskResponse {}
+
+message ListAccountRequest {}
+
+message FullCredentials {
+  AddAccountRequest account = 1;
+  string postBefore = 2;
+  string postAfter = 3;
+}
+
+message ListAccountResponse {
+  repeated FullCredentials cred = 1;
+}
+
+message DeleteAccountRequest {
+  int64 accountId = 1;
+}
+
+message DeleteAccountResponse {}
+
+
+message AddAccountRequest {
+  string ClientID = 1;
+  string ClientSecret = 2;
+  string Username = 3;
+  string Password = 4;
+}
+
+message AddAccountResponse {}
+
+message Credentials {
+
+}
+
+message TestRequest {}
+
+message TestResponse {}

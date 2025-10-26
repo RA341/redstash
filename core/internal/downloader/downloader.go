@@ -1,0 +1,143 @@
+package downloader
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/url"
+	"os"
+	"path/filepath"
+
+	"github.com/RA341/redstash/internal/reddit"
+	"resty.dev/v3"
+)
+
+type Image struct {
+	Path string `json:"path"`
+}
+
+type Downloader func(post *reddit.Post, downloadDir string) error
+
+type Gallery struct {
+	ImgList []Image `json:"images"`
+}
+
+func downloadGallery(post *reddit.Post, downloadDir string) error {
+	data, err := getMap(post)
+	if err != nil {
+		return err
+	}
+
+	imgMap := data["media_metadata"].(map[string]interface{})
+
+	var imgList Gallery
+
+	for _, i := range imgMap {
+		downloadLink := i.(map[string]interface{})["s"].(map[string]interface{})["u"].(string)
+		filename, err := downloadImageFromLink(downloadLink, downloadDir)
+		if err != nil {
+			return err
+		}
+		imgList.ImgList = append(imgList.ImgList, Image{filename})
+	}
+
+	marshal, err := json.Marshal(imgList)
+	if err != nil {
+		return err
+	}
+	post.DownloadData = marshal
+
+	return nil
+}
+
+func downloadImage(post *reddit.Post, downloadDir string) error {
+	data, err := getMap(post)
+	if err != nil {
+		return err
+	}
+	imgUrl, ok := data["url"]
+	if !ok {
+		return fmt.Errorf("key 'url' not found in post to download image")
+	}
+	imageUrl := imgUrl.(string)
+
+	filename, err := downloadImageFromLink(imageUrl, downloadDir)
+	if err != nil {
+		return err
+	}
+
+	img := Image{Path: filename}
+	marshal, err := json.Marshal(img)
+	if err != nil {
+		return err
+	}
+	post.DownloadData = marshal
+
+	return nil
+}
+
+func downloadVideo(post *reddit.Post, downloadDir string, downloader *RedgifsClient) error {
+	data, err := getMap(post)
+	if err != nil {
+		return err
+	}
+
+	//https://www.redgifs.com/watch/
+	imgUrl, ok := data["url"]
+	if !ok {
+		return fmt.Errorf("key 'url' not found in post to download image")
+	}
+	imageUrl := imgUrl.(string)
+
+	link, err := downloader.GetDownloadLink(imageUrl, false)
+	if err != nil {
+		return err
+	}
+
+	fromLink, err := downloadImageFromLink(link, downloadDir)
+	if err != nil {
+		return err
+	}
+
+	img := Image{Path: fromLink}
+	marshal, err := json.Marshal(img)
+	if err != nil {
+		return err
+	}
+	post.DownloadData = marshal
+
+	return nil
+}
+
+func downloadImageFromLink(imageUrl string, downloadDir string) (string, error) {
+	resp, err := resty.New().R().Get(imageUrl)
+	if err != nil {
+		return "", fmt.Errorf("failed to download image: %w", err)
+	}
+	if resp.IsError() {
+		return "", fmt.Errorf("failed to download image: status %d", resp.StatusCode())
+	}
+
+	// Parse the URL
+	parsedURL, err := url.Parse(imageUrl)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse URL: %w", err)
+	}
+	// Get the path without query params
+	base := filepath.Base(parsedURL.Path)
+
+	filename := filepath.Join(downloadDir, base)
+	err = os.WriteFile(filename, resp.Bytes(), os.ModePerm)
+	if err != nil {
+		return "", fmt.Errorf("failed to write image file: %w", err)
+	}
+	return filename, nil
+}
+
+func getMap(post *reddit.Post) (map[string]interface{}, error) {
+	var data map[string]interface{}
+	err := json.Unmarshal(post.Data, &data)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling post data: %w", err)
+	}
+	return data, nil
+}

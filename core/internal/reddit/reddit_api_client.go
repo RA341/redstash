@@ -11,7 +11,7 @@ import (
 	"resty.dev/v3"
 )
 
-var userAgent = fmt.Sprintf("redstash:%s (by /u/descendent-of-apes)", info.Version)
+var UserAgent = fmt.Sprintf("redstash:%s (by /u/descendent-of-apes)", info.Version)
 
 // TokenResponse struct to parse the response
 type TokenResponse struct {
@@ -36,7 +36,7 @@ type ApiClient struct {
 
 func NewApiClient(cred *Credential, credStore PostLimitStore, postStore PostStore) *ApiClient {
 	client := resty.New()
-	client.SetHeader("User-Agent", userAgent)
+	client.SetHeader("User-Agent", UserAgent)
 
 	return &ApiClient{
 		maxPostsToFetch: 100,
@@ -241,7 +241,7 @@ func (s *ApiClient) savePostsToDB(result *SavedResponse) ([]Post, error) {
 
 func (s *ApiClient) getSavedPosts(after, before string) (*SavedResponse, error) {
 	client := resty.New()
-	client.SetHeader("User-Agent", userAgent)
+	client.SetHeader("User-Agent", UserAgent)
 	var res SavedResponse
 
 	resp, err := client.R().

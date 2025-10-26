@@ -28,9 +28,10 @@ const (
 )
 
 type PostStore interface {
-	Save(post Post) error
+	Save(post *Post) error
 	SaveAll(post []Post) error
 	List(offset, limit int) ([]Post, error)
+	ListAll() ([]Post, error)
 }
 
 type Post struct {
@@ -38,7 +39,9 @@ type Post struct {
 	// post id
 	RedditId string `gorm:"uniqueIndex"`
 	// type
-	MediaType MediaType
+	MediaType    MediaType
+	DownloadData []byte `gorm:"type:text"`
+
 	// todo download table
 	//download DownloadedMedia
 	Data []byte `gorm:"type:text"`

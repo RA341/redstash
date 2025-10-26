@@ -6,6 +6,7 @@ import (
 	rmrpc "github.com/RA341/redstash/generated/reddit/v1/v1connect"
 	"github.com/RA341/redstash/internal/config"
 	"github.com/RA341/redstash/internal/database"
+	"github.com/RA341/redstash/internal/downloader"
 	"github.com/RA341/redstash/internal/reddit"
 
 	"github.com/rs/zerolog/log"
@@ -24,6 +25,12 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 
 	// services
 	redditManager := reddit.NewManagerService(managerStore, postStore)
+	downloaderService := downloader.NewService(
+		"downloads",
+		postStore,
+		postStore.Save,
+	)
+	downloaderService.TriggerDownloader()
 
 	// api
 

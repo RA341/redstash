@@ -5,12 +5,13 @@ vars:
   WORKING_DIR:
     sh: pwd
 
-  IMAGE_NAME: protobuilder/dockman
+  IMAGE_NAME: protobuilder:redstash
   CORE_DIR: ../core/generated
-  UI_DIR: ../ui/src/gen
+  UI_DIR: ../ui/lib/gen
+  WEB_DIR: ../parmesan/source/gen
   GENERATED_DIR: generated
   PROTODIR: protos
-  GO_PACKAGE_BASE: "github.com/RA341/redstash/generated"
+  GO_PACKAGE_BASE: "github.com/RA341/gouda/generated"
 
 tasks:
   proto:*:*:
@@ -38,11 +39,8 @@ tasks:
     desc: "Creates a new v1 proto file. Usage: task proto:<package>"
     vars:
       PROTO_PACKAGE: "{{ index .MATCH 0 }}"
-      VERSION: "v1"
-      PACKAGE_PATH: "{{ .PROTODIR }}/{{ .PROTO_PACKAGE }}/{{ .VERSION }}"
-      FILE_PATH: "{{ .PACKAGE_PATH }}/{{ .PROTO_PACKAGE }}.proto"
     cmds:
-      - task: proto:{{ .PROTO_PACKAGE }}:{{ .VERSION }}
+      - task: proto:{{ .PROTO_PACKAGE }}:v1
 
   build:
     desc: Build the Docker image used for proto generation
@@ -56,27 +54,39 @@ tasks:
       - docker run --rm -v "{{.WORKING_DIR}}:/workspace" {{ .IMAGE_NAME}}
 
   gen:
-    desc: generate and copy out generated files and remove source generated dir
+    desc: Generate and copy generated files to their respective destinations
     deps: [ geno ]
     cmds:
-      - task: go
-      - task: web
+      - task --parallel go dart
 
   go:
-    desc: Copy generated Go files to core directory
+    desc: Move generated Go files
     cmds:
+      - echo "moving go files"
       - task: _copy
         vars:
           TARGET_DIR: '{{.CORE_DIR}}'
           SOURCE_PATTERN: '{{.GENERATED_DIR}}/go/*'
+      - coreutils rm -rf {{.GENERATED_DIR}}/go
 
-  web:
-    desc: Copy generated web files to UI directory
+  dart:
+    desc: Move generated Dart files
     cmds:
       - task: _copy
         vars:
           TARGET_DIR: '{{.UI_DIR}}'
-          SOURCE_PATTERN: '{{.GENERATED_DIR}}/web/*'
+          SOURCE_PATTERN: '{{.GENERATED_DIR}}/dart/*'
+      - coreutils rm -rf {{.GENERATED_DIR}}/dart
+
+  #  web:
+  #    desc: Move generated web files
+  #    cmds:
+  #      - echo "moving web files"
+  #      - task: _copy
+  #        vars:
+  #          TARGET_DIR: '{{.WEB_DIR}}'
+  #          SOURCE_PATTERN: '{{.GENERATED_DIR}}/web/*'
+  #      - coreutils rm -rf {{.GENERATED_DIR}}/web
 
   _copy:
     internal: true
@@ -89,14 +99,13 @@ tasks:
       - coreutils cp -r {{.SOURCE_PATTERN}} {{.TARGET_DIR}}/
 
   it:
-    desc: drop into a shell and interact with the image. CTRL+D to exit
+    desc: Run an interactive shell inside the Docker container
     deps: [ build ]
     cmds:
-      - docker run --rm --name gouda_grpc_shell -v "{{.WORKING_DIR}}:/workspace" -it protobuilder:latest /bin/bash
-
+      - docker run --rm --name gouda_grpc_shell -v "{{.WORKING_DIR}}:/workspace" -it {{ .IMAGE_NAME}} /bin/bash
 
   bpsh:
-    desc: build and push
+    desc: Build and push via Makefile
     cmds:
       - make build
       - make push

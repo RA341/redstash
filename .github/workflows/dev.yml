@@ -1,0 +1,26 @@
+name: Dev Docker Build
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+    paths:
+      - ui/**
+      - core/**
+      - Dockerfile
+      - .github/workflows/docker.yml
+      - .github/workflows/dev.yml
+
+permissions:
+  contents: write   # To checkout the repository
+  packages: write  # To push Docker images to GHCR
+
+jobs:
+  build-docker:
+    name: Dev docker build
+    uses: ./.github/workflows/docker.yml
+    with:
+      source_branch: ${{ github.ref_name }}
+    secrets: inherit

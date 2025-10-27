@@ -167,8 +167,8 @@ tasks:
     cmds:
       - task dk:b:{{.TARGET}}
       - docker run --rm
-        -e DOCKMAN_LOG_LEVEL=debug
-        -p 8221:8866
+        -e REDSTASH_LOG_LEVEL=debug
+        -p 8559:8558
         {{.IMAGE_BASE}}:{{.TARGET}}
     preconditions:
       - sh: 'test -n "{{.TARGET}}"'

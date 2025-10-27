@@ -1,3 +1,15 @@
+FROM ghcr.io/ra341/dfw:latest AS flutter_builder
+
+WORKDIR /web/
+
+COPY ./ui/pubspec.* .
+
+RUN flutter pub get
+
+COPY ui .
+
+RUN flutter build web --wasm
+
 FROM golang:1-alpine AS back
 
 WORKDIR /core
@@ -13,8 +25,6 @@ RUN go mod download
 
 COPY core/ .
 
-# These ARGs are automatically populated by Docker Buildx for each platform.
-# e.g., for 'linux/arm64', TARGETOS becomes 'linux' and TARGETARCH becomes 'arm64'.
 ARG TARGETPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
@@ -37,6 +47,10 @@ FROM alpine:latest AS alpine
 WORKDIR /app
 
 COPY --from=back /core/redstash redstash
+
+COPY --from=flutter_builder /web/build/web web
+
+ENV REDSTASH_UI_PATH=web
 
 EXPOSE 8558
 

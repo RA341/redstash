@@ -138,15 +138,12 @@ func (s *Service) DownloadWorker(workerID int, postChannel chan reddit.Post) {
 				return
 			}
 
-			subLogger.Info().Msg("Starting download")
 			s.StartDownload(subLogger, &post)
-			subLogger.Info().Msg("Finishing download")
 		}
 	}
 }
 
 func (s *Service) StartDownload(log zerolog.Logger, post *reddit.Post) {
-
 	baseFolder := filepath.Join(s.downloadDir, post.RedditId)
 	err := os.MkdirAll(baseFolder, 0755)
 	if err != nil {

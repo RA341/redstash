@@ -33,7 +33,6 @@ func (s *Scheduler) Manual() {
 	select {
 	case s.manualChan <- struct{}{}:
 		log.Debug().Msg("starting task")
-		s.task()
 	default:
 		log.Debug().Msg("task is already running")
 	}

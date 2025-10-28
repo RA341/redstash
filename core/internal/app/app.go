@@ -29,7 +29,6 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 		postStore,
 		postStore.Save,
 	)
-	downloaderService.TriggerDownloader()
 
 	redditManager := reddit.NewManagerService(
 		managerStore,
@@ -37,8 +36,10 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 		downloaderService.TriggerDownloader,
 	)
 
-	// api
+	// start any previous incomplete downloads
+	downloaderService.TriggerDownloader()
 
+	// api
 	//authInterceptor := connect.WithInterceptors()
 	//if a.Config.Auth.Enable {
 	//	//authInterceptor = connect.WithInterceptors(auth.NewInterceptor(a.Auth))

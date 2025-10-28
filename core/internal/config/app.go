@@ -20,8 +20,10 @@ type AppConfig struct {
 	AllowedOrigins string `config:"flag=origins,env=ORIGINS,default=*,usage=Allowed origins for the API (in CSV)"`
 	UIPath         string `config:"flag=ui,env=UI_PATH,default=dist,usage=Path to frontend files"`
 	ConfigDir      string `config:"flag=conf,env=CONFIG,default=/config,usage=Directory to store redstash config"`
-	Log            Logger `config:""`
-	UIFS           fs.FS  // UIFS has no 'config' tag, so it will be ignored
+	DownloadDir    string `config:"flag=down,env=DOWNLOAD_DIR,default=downloads,usage=Directory to store downloads"`
+
+	Log  Logger `config:""`
+	UIFS fs.FS  // UIFS has no 'config' tag, so it will be ignored
 }
 
 type FilePerms struct {
@@ -38,10 +40,6 @@ type AuthConfig struct {
 
 func (d AuthConfig) GetCookieExpiryLimit() (time.Duration, error) {
 	return time.ParseDuration(d.CookieExpiry)
-}
-
-type UpdaterConfig struct {
-	Addr string `config:"flag=upAddr,env=UPDATER_HOST,default=http://updater:8869,usage=URL for redstash updater eg: http://localhost:8869"`
 }
 
 type Logger struct {

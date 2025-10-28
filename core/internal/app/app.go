@@ -25,7 +25,7 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 
 	// services
 	downloaderService := downloader.NewService(
-		"downloads",
+		conf.DownloadDir,
 		postStore,
 		postStore.Save,
 	)

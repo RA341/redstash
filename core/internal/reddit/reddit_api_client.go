@@ -32,9 +32,16 @@ type ApiClient struct {
 
 	postStore PostStore
 	credStore PostLimitStore
+
+	startDownloader func()
 }
 
-func NewApiClient(cred *Credential, credStore PostLimitStore, postStore PostStore) *ApiClient {
+func NewApiClient(
+	cred *Credential,
+	credStore PostLimitStore,
+	postStore PostStore,
+	startDownloader func(),
+) *ApiClient {
 	client := resty.New()
 	client.SetHeader("User-Agent", UserAgent)
 
@@ -46,11 +53,13 @@ func NewApiClient(cred *Credential, credStore PostLimitStore, postStore PostStor
 
 		postStore: postStore,
 		credStore: credStore,
+
+		startDownloader: startDownloader,
 	}
 }
 
 func CheckCredentials(cred *Credential, credStore CredentialStore) error {
-	cli := NewApiClient(cred, credStore, nil)
+	cli := NewApiClient(cred, credStore, nil, nil)
 	return cli.Login()
 }
 
@@ -135,7 +144,7 @@ func (s *ApiClient) getAllSavedWithBefore() error {
 }
 
 func (s *ApiClient) getAllSavedWithAfter() error {
-	return s.getAllSavedPosts(
+	err := s.getAllSavedPosts(
 		func() (*SavedResponse, error) {
 			_, after, err := s.credStore.getPostLimit(s.cred.Username)
 			if err != nil {
@@ -178,6 +187,12 @@ func (s *ApiClient) getAllSavedWithAfter() error {
 			return nil
 		},
 	)
+	if err != nil {
+		return err
+	}
+
+	s.startDownloader()
+	return nil
 }
 
 func (s *ApiClient) getAllSavedPosts(
@@ -226,7 +241,7 @@ func (s *ApiClient) savePostsToDB(result *SavedResponse) ([]Post, error) {
 	for _, p := range result.Data.Children {
 		var postItem Post
 
-		err := postItem.SetData(p.Data)
+		err := postItem.SetData(p.Data, s.cred)
 		if err != nil {
 			// todo continue on error
 			return nil, fmt.Errorf("failed to set post data: %w", err)

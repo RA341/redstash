@@ -4,5 +4,7 @@ Transport setupClientTransport(
   String? basePath,
   List<Interceptor> interceptors,
 ) {
-  throw Exception('This should never execute you idiot');
+  throw Exception(
+    'Stub implementation executed\nThis should never happen idiot, dumbass, poo-poo head',
+  );
 }

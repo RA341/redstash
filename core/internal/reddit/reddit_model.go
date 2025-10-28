@@ -32,22 +32,29 @@ type PostStore interface {
 	SaveAll(post []Post) error
 	List(offset, limit int) ([]Post, error)
 	ListAll() ([]Post, error)
+	ListNonDownloaded(limit int) ([]Post, error)
 }
 
 type Post struct {
 	*gorm.Model
+
+	UserCredentialID uint       `gorm:"index;column:user_credential_id"`
+	Credential       Credential `gorm:"foreignKey:UserCredentialID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+
 	// post id
 	RedditId string `gorm:"uniqueIndex"`
 	// type
 	MediaType    MediaType
 	DownloadData []byte `gorm:"type:text"`
 
+	ErrorData string `gorm:"type:text"`
+
 	// todo download table
 	//download DownloadedMedia
 	Data []byte `gorm:"type:text"`
 }
 
-func (p *Post) SetData(data map[string]interface{}) error {
+func (p *Post) SetData(data map[string]interface{}, cred *Credential) error {
 	if val, ok := data["media"]; ok && val != nil {
 		p.MediaType = Video
 	} else if val, ok = data["gallery_data"]; ok && val != nil {
@@ -57,6 +64,9 @@ func (p *Post) SetData(data map[string]interface{}) error {
 	} else {
 		p.MediaType = Unsupported
 	}
+
+	p.UserCredentialID = cred.ID
+	p.Credential = *cred
 
 	redID, ok := data["name"].(string)
 	if !ok {

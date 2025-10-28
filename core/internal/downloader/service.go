@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/RA341/redstash/internal/reddit"
 	"github.com/rs/zerolog"
@@ -72,7 +73,7 @@ func (s *Service) StartDownloader() {
 
 	wg := errgroup.Group{}
 	wg.Go(func() error {
-		return s.LoadDatabase(postChan)
+		return s.StartDatabaseFeeder(postChan)
 	})
 	wg.Go(func() error {
 		s.DeployWorkers(postChan)
@@ -83,35 +84,52 @@ func (s *Service) StartDownloader() {
 	if err != nil {
 		log.Error().Err(err).Msg("failed to start downloader")
 	}
+
+	log.Info().Msg("downloader finished")
 }
 
-func (s *Service) LoadDatabase(postChannel chan reddit.Post) error {
+func (s *Service) StartDatabaseFeeder(postChannel chan reddit.Post) error {
+	const strikeLimit = 5
+
 	limit := 100
-	offset := 0
+	strikes := 0
+
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
 
 	for {
-		posts, err := s.store.List(offset, limit)
-		if err != nil {
-			return err
-		}
-
-		for _, post := range posts {
-			if post.DownloadData != nil {
-				log.Info().Str("id", post.RedditId).Msg("post already downloaded")
-				continue
+		select {
+		case <-ticker.C:
+			posts, err := s.store.ListNonDownloaded(limit)
+			if err != nil {
+				return err
 			}
-			postChannel <- post
-		}
 
-		if len(posts) < limit {
-			close(postChannel)
-			break
-		}
+			for _, post := range posts {
+				if post.DownloadData != nil {
+					log.Info().Str("id", post.RedditId).Msg("post already downloaded")
+					continue
+				}
+				postChannel <- post
+			}
 
-		offset += limit
+			// Check if we got fewer results than expected
+			if len(posts) < limit {
+				strikes++
+				if strikes >= strikeLimit {
+					log.Info().Msg("Exiting downloader")
+					close(postChannel)
+					return nil
+				}
+				log.Info().
+					Int("strike", strikes).Int("strikes left", strikeLimit-strikes).
+					Msg("strikes left before downloader stops")
+			} else {
+				// We got full results, reset strikes and continue pagination
+				strikes = 0
+			}
+		}
 	}
-
-	return nil
 }
 
 func (s *Service) DeployWorkers(postChannel chan reddit.Post) {
@@ -159,7 +177,7 @@ func (s *Service) StartDownload(log zerolog.Logger, post *reddit.Post) {
 
 	err = downloadFn(post, baseFolder)
 	if err != nil {
-		log.Error().Err(err).Msg("Error downloading post")
+		post.ErrorData = err.Error()
 	}
 
 	err = s.updatePost(post)

@@ -12,8 +12,13 @@ type ClientService struct {
 	cli *ApiClient
 }
 
-func NewClientService(cred *Credential, limitStore PostLimitStore, postStore PostStore) *ClientService {
-	cli := NewApiClient(cred, limitStore, postStore)
+func NewClientService(
+	cred *Credential,
+	limitStore PostLimitStore,
+	postStore PostStore,
+	triggerDownload func(),
+) *ClientService {
+	cli := NewApiClient(cred, limitStore, postStore, triggerDownload)
 	scd := schd.NewScheduler(
 		func() {
 			err := cli.GetAllSavedPosts()

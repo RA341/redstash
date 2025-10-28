@@ -21,8 +21,8 @@ func NewScheduler(task Task, interval time.Duration) *Scheduler {
 	return &Scheduler{
 		task:       task,
 		interval:   interval,
-		cancelChan: make(chan interface{}),
-		manualChan: make(chan interface{}),
+		cancelChan: make(chan interface{}, 1),
+		manualChan: make(chan interface{}, 1),
 	}
 }
 
@@ -32,8 +32,10 @@ func NewScheduler(task Task, interval time.Duration) *Scheduler {
 func (s *Scheduler) Manual() {
 	select {
 	case s.manualChan <- struct{}{}:
+		log.Debug().Msg("starting task")
+		s.task()
 	default:
-		log.Debug().Msg("updater is already running chill")
+		log.Debug().Msg("task is already running")
 	}
 }
 

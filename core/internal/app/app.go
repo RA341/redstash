@@ -24,13 +24,18 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 	postStore := reddit.NewGormPostStore(db)
 
 	// services
-	redditManager := reddit.NewManagerService(managerStore, postStore)
 	downloaderService := downloader.NewService(
 		"downloads",
 		postStore,
 		postStore.Save,
 	)
 	downloaderService.TriggerDownloader()
+
+	redditManager := reddit.NewManagerService(
+		managerStore,
+		postStore,
+		downloaderService.TriggerDownloader,
+	)
 
 	// api
 

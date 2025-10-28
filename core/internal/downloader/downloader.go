@@ -3,12 +3,15 @@ package downloader
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/RA341/redstash/internal/reddit"
-	"resty.dev/v3"
+	"github.com/RA341/redstash/pkg/fileutil"
 )
 
 type Image struct {
@@ -33,7 +36,7 @@ func downloadGallery(post *reddit.Post, downloadDir string) error {
 
 	for _, i := range imgMap {
 		downloadLink := i.(map[string]interface{})["s"].(map[string]interface{})["u"].(string)
-		filename, err := downloadImageFromLink(downloadLink, downloadDir)
+		filename, err := downloadMediaLink(downloadLink, downloadDir)
 		if err != nil {
 			return err
 		}
@@ -60,7 +63,7 @@ func downloadImage(post *reddit.Post, downloadDir string) error {
 	}
 	imageUrl := imgUrl.(string)
 
-	filename, err := downloadImageFromLink(imageUrl, downloadDir)
+	filename, err := downloadMediaLink(imageUrl, downloadDir)
 	if err != nil {
 		return err
 	}
@@ -93,7 +96,7 @@ func downloadVideo(post *reddit.Post, downloadDir string, downloader *RedgifsCli
 		return err
 	}
 
-	fromLink, err := downloadImageFromLink(link, downloadDir)
+	fromLink, err := downloadMediaLink(link, downloadDir)
 	if err != nil {
 		return err
 	}
@@ -108,28 +111,47 @@ func downloadVideo(post *reddit.Post, downloadDir string, downloader *RedgifsCli
 	return nil
 }
 
-func downloadImageFromLink(imageUrl string, downloadDir string) (string, error) {
-	resp, err := resty.New().R().Get(imageUrl)
+var mediaHttpClient = &http.Client{
+	Timeout: 5 * time.Minute,
+	Transport: &http.Transport{
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 50,
+		IdleConnTimeout:     90 * time.Second,
+	},
+}
+
+// Use standard http.Client for streaming
+// resty causes mem issues, or I am using it wrong
+func downloadMediaLink(imageUrl string, downloadDir string) (string, error) {
+	resp, err := mediaHttpClient.Get(imageUrl)
 	if err != nil {
 		return "", fmt.Errorf("failed to download image: %w", err)
 	}
-	if resp.IsError() {
-		return "", fmt.Errorf("failed to download image: status %d", resp.StatusCode())
+	defer fileutil.Close(resp.Body)
+
+	if resp.StatusCode >= 400 {
+		return "", fmt.Errorf("failed to download image: status %d", resp.StatusCode)
 	}
 
-	// Parse the URL
 	parsedURL, err := url.Parse(imageUrl)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse URL: %w", err)
 	}
-	// Get the path without query params
 	base := filepath.Base(parsedURL.Path)
 
 	filename := filepath.Join(downloadDir, base)
-	err = os.WriteFile(filename, resp.Bytes(), os.ModePerm)
+	file, err := os.Create(filename)
 	if err != nil {
-		return "", fmt.Errorf("failed to write image file: %w", err)
+		return "", fmt.Errorf("failed to open output file %s: %w", filename, err)
 	}
+	defer fileutil.Close(file)
+
+	// Stream directly from response body to file
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to write to output file %s: %w", filename, err)
+	}
+
 	return filename, nil
 }
 

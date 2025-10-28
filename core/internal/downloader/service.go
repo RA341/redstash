@@ -18,11 +18,11 @@ type Service struct {
 	downloadDir        string
 	store              reddit.PostStore
 	maxDownloadWorkers int
+	maxPostsToFetch    int
+	updatePost         UpdatePostFn
 
-	updatePost UpdatePostFn
-
-	downloaderMap map[string]Downloader
-	triggerChan   chan interface{}
+	downloaderFnMap map[string]Downloader
+	triggerChan     chan interface{}
 }
 
 func NewService(downloadDir string, store reddit.PostStore, updatePost UpdatePostFn) *Service {
@@ -41,15 +41,17 @@ func NewService(downloadDir string, store reddit.PostStore, updatePost UpdatePos
 	}
 
 	s := &Service{
-		store:              store,
-		downloadDir:        downloadDir,
-		maxDownloadWorkers: 50,
-		updatePost:         updatePost,
-		downloaderMap:      downloaderMap,
-		triggerChan:        make(chan interface{}, 1),
+		store:       store,
+		downloadDir: downloadDir,
+
+		maxDownloadWorkers: 30,
+		maxPostsToFetch:    100,
+
+		updatePost:      updatePost,
+		downloaderFnMap: downloaderMap,
+		triggerChan:     make(chan interface{}, 1),
 	}
 
-	s.TriggerDownloader()
 	return s
 }
 
@@ -57,9 +59,7 @@ func (s *Service) TriggerDownloader() {
 	go func() {
 		select {
 		case s.triggerChan <- struct{}{}:
-			log.Info().Msg("downloader started")
 			s.StartDownloader()
-			log.Info().Msg("downloader complete")
 
 			_ = <-s.triggerChan
 		default:
@@ -69,14 +69,16 @@ func (s *Service) TriggerDownloader() {
 }
 
 func (s *Service) StartDownloader() {
-	postChan := make(chan reddit.Post, 100)
+	log.Info().Msg("downloader started")
+
+	postChan := make(chan *reddit.Post, s.maxPostsToFetch)
 
 	wg := errgroup.Group{}
 	wg.Go(func() error {
-		return s.StartDatabaseFeeder(postChan)
+		return s.postProducer(postChan)
 	})
 	wg.Go(func() error {
-		s.DeployWorkers(postChan)
+		s.deployWorkers(postChan)
 		return nil
 	})
 
@@ -85,22 +87,24 @@ func (s *Service) StartDownloader() {
 		log.Error().Err(err).Msg("failed to start downloader")
 	}
 
-	log.Info().Msg("downloader finished")
+	log.Info().Msg("downloader completed")
 }
 
-func (s *Service) StartDatabaseFeeder(postChannel chan reddit.Post) error {
+func (s *Service) postProducer(postChannel chan *reddit.Post) error {
 	const strikeLimit = 5
 
-	limit := 100
 	strikes := 0
 
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
+	posts := make([]reddit.Post, 0, s.maxPostsToFetch)
+
 	for {
 		select {
 		case <-ticker.C:
-			posts, err := s.store.ListNonDownloaded(limit)
+			posts = posts[:0] // clear slice
+			err := s.store.ListNonDownloaded(s.maxPostsToFetch, &posts)
 			if err != nil {
 				return err
 			}
@@ -110,11 +114,11 @@ func (s *Service) StartDatabaseFeeder(postChannel chan reddit.Post) error {
 					log.Info().Str("id", post.RedditId).Msg("post already downloaded")
 					continue
 				}
-				postChannel <- post
+				postChannel <- &post
 			}
 
 			// Check if we got fewer results than expected
-			if len(posts) < limit {
+			if len(posts) < s.maxPostsToFetch {
 				strikes++
 				if strikes >= strikeLimit {
 					log.Info().Msg("Exiting downloader")
@@ -132,36 +136,33 @@ func (s *Service) StartDatabaseFeeder(postChannel chan reddit.Post) error {
 	}
 }
 
-func (s *Service) DeployWorkers(postChannel chan reddit.Post) {
+func (s *Service) deployWorkers(postChannel chan *reddit.Post) {
 	wg := sync.WaitGroup{}
 
 	for i := 0; i < s.maxDownloadWorkers; i++ {
+		subLogger := log.With().Int("worker", i+1).Logger()
 		wg.Go(func() {
-			s.DownloadWorker(i+1, postChannel)
+			s.worker(&subLogger, postChannel)
 		})
 	}
 
 	wg.Wait()
-	log.Info().Msg("all workers finished")
 }
 
-func (s *Service) DownloadWorker(workerID int, postChannel chan reddit.Post) {
-	subLogger := log.With().Int("Worker", workerID).Logger()
-
+func (s *Service) worker(log *zerolog.Logger, postChannel chan *reddit.Post) {
 	for {
 		select {
-		case post, ok := <-postChannel:
+		case item, ok := <-postChannel:
 			if !ok {
-				subLogger.Info().Msg("Post channel closed exiting worker")
+				log.Debug().Msg("post channel closed, exiting worker")
 				return
 			}
-
-			s.StartDownload(subLogger, &post)
+			s.download(log, item)
 		}
 	}
 }
 
-func (s *Service) StartDownload(log zerolog.Logger, post *reddit.Post) {
+func (s *Service) download(log *zerolog.Logger, post *reddit.Post) {
 	baseFolder := filepath.Join(s.downloadDir, post.RedditId)
 	err := os.MkdirAll(baseFolder, 0755)
 	if err != nil {
@@ -169,7 +170,7 @@ func (s *Service) StartDownload(log zerolog.Logger, post *reddit.Post) {
 		return
 	}
 
-	downloadFn, ok := s.downloaderMap[string(post.MediaType)]
+	downloadFn, ok := s.downloaderFnMap[string(post.MediaType)]
 	if !ok {
 		log.Warn().Str("type", string(post.MediaType)).Msg("Unsupported media type")
 		return

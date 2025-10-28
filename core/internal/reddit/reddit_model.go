@@ -7,17 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type SavedResponse struct {
-	Data struct {
-		Count    int    `json:"dist"`
-		After    string `json:"after"`
-		Before   string `json:"before"`
-		Children []struct {
-			Data map[string]interface{} `json:"data"`
-		} `json:"children"`
-	} `json:"data"`
-}
-
 type MediaType string
 
 const (
@@ -32,7 +21,8 @@ type PostStore interface {
 	SaveAll(post []Post) error
 	List(offset, limit int) ([]Post, error)
 	ListAll() ([]Post, error)
-	ListNonDownloaded(limit int) ([]Post, error)
+	ListNonDownloaded(limit int, result *[]Post) error
+	ClearDownloadData() error
 }
 
 type Post struct {
@@ -41,17 +31,12 @@ type Post struct {
 	UserCredentialID uint       `gorm:"index;column:user_credential_id"`
 	Credential       Credential `gorm:"foreignKey:UserCredentialID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
-	// post id
-	RedditId string `gorm:"uniqueIndex"`
-	// type
-	MediaType    MediaType
+	RedditId  string `gorm:"uniqueIndex"`
+	MediaType MediaType
+	Data      []byte `gorm:"type:text"`
+
 	DownloadData []byte `gorm:"type:text"`
-
-	ErrorData string `gorm:"type:text"`
-
-	// todo download table
-	//download DownloadedMedia
-	Data []byte `gorm:"type:text"`
+	ErrorData    string `gorm:"type:text"`
 }
 
 func (p *Post) SetData(data map[string]interface{}, cred *Credential) error {
@@ -83,6 +68,13 @@ func (p *Post) SetData(data map[string]interface{}, cred *Credential) error {
 	return nil
 }
 
-func (p *Post) GetData(target interface{}) error {
-	return json.Unmarshal(p.Data, target)
+type SavedResponse struct {
+	Data struct {
+		Count    int    `json:"dist"`
+		After    string `json:"after"`
+		Before   string `json:"before"`
+		Children []struct {
+			Data map[string]interface{} `json:"data"`
+		} `json:"children"`
+	} `json:"data"`
 }

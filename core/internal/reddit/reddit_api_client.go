@@ -109,7 +109,13 @@ func (s *ApiClient) GetAllSavedPosts() error {
 		return err
 	}
 
-	return s.getAllSavedWithBefore()
+	err = s.getAllSavedWithBefore()
+	if err != nil {
+		return err
+	}
+
+	s.startDownloader()
+	return nil
 }
 
 func (s *ApiClient) getAllSavedWithBefore() error {
@@ -191,7 +197,6 @@ func (s *ApiClient) getAllSavedWithAfter() error {
 		return err
 	}
 
-	s.startDownloader()
 	return nil
 }
 

@@ -13,16 +13,25 @@ func NewGormPostStore(db *gorm.DB) PostStore {
 	return &GormPostStore{db: db}
 }
 
-func (g *GormPostStore) ListNonDownloaded(limit int) ([]Post, error) {
-	var posts []Post
+func (g *GormPostStore) ListNonDownloaded(limit int, result *[]Post) error {
 	tx := g.db.
 		Limit(limit).
 		Where("download_data IS NULL OR download_data = ?", "").
 		Where("error_data IS NULL OR error_data = ?", "").
 		Where("media_type != ?", Unsupported).
-		Find(&posts)
+		Find(result)
 
-	return posts, tx.Error
+	return tx.Error
+}
+
+func (g *GormPostStore) ClearDownloadData() error {
+	return g.db.Model(&Post{}).
+		Where("1 = 1"). // update all rows
+		Updates(map[string]interface{}{
+			"download_data": nil,
+			"error_data":    nil,
+		}).
+		Error
 }
 
 func (g *GormPostStore) ListAll() ([]Post, error) {

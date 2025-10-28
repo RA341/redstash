@@ -79,6 +79,7 @@ func parseStruct() (*AppConfig, error) {
 
 	pathsToResolve := []*string{
 		&conf.ConfigDir,
+		&conf.DownloadDir,
 	}
 	for _, p := range pathsToResolve {
 		absPath, err := filepath.Abs(*p)

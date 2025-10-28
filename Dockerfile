@@ -51,6 +51,7 @@ COPY --from=back /core/redstash redstash
 COPY --from=flutter_builder /web/build/web web
 
 ENV REDSTASH_UI_PATH=web
+ENV REDSTASH_DOWNLOAD_DIR=/downloads
 
 EXPOSE 8558
 

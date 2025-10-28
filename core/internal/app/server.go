@@ -23,7 +23,7 @@ func init() {
 	logger.InitDefault()
 }
 
-func StartServer(opt ...config.ServerOpt) {
+func StartServer() {
 	conf, err := config.Load()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error parsing config")

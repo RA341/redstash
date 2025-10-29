@@ -13,7 +13,6 @@
 import 'dart:async' as $async;
 import 'dart:core' as $core;
 
-import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
@@ -156,11 +155,13 @@ class ListAccountRequest extends $pb.GeneratedMessage {
 
 class FullCredentials extends $pb.GeneratedMessage {
   factory FullCredentials({
-    AddAccountRequest? account,
+    $core.int? accountID,
+    AccountDetails? account,
     $core.String? postBefore,
     $core.String? postAfter,
   }) {
     final result = create();
+    if (accountID != null) result.accountID = accountID;
     if (account != null) result.account = account;
     if (postBefore != null) result.postBefore = postBefore;
     if (postAfter != null) result.postAfter = postAfter;
@@ -180,10 +181,12 @@ class FullCredentials extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'FullCredentials',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'reddit.v1'),
       createEmptyInstance: create)
-    ..aOM<AddAccountRequest>(1, _omitFieldNames ? '' : 'account',
-        subBuilder: AddAccountRequest.create)
-    ..aOS(2, _omitFieldNames ? '' : 'postBefore', protoName: 'postBefore')
-    ..aOS(3, _omitFieldNames ? '' : 'postAfter', protoName: 'postAfter')
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'AccountID', $pb.PbFieldType.OU3,
+        protoName: 'AccountID')
+    ..aOM<AccountDetails>(2, _omitFieldNames ? '' : 'account',
+        subBuilder: AccountDetails.create)
+    ..aOS(3, _omitFieldNames ? '' : 'postBefore', protoName: 'postBefore')
+    ..aOS(4, _omitFieldNames ? '' : 'postAfter', protoName: 'postAfter')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -208,33 +211,42 @@ class FullCredentials extends $pb.GeneratedMessage {
   static FullCredentials? _defaultInstance;
 
   @$pb.TagNumber(1)
-  AddAccountRequest get account => $_getN(0);
+  $core.int get accountID => $_getIZ(0);
   @$pb.TagNumber(1)
-  set account(AddAccountRequest value) => $_setField(1, value);
+  set accountID($core.int value) => $_setUnsignedInt32(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasAccount() => $_has(0);
+  $core.bool hasAccountID() => $_has(0);
   @$pb.TagNumber(1)
-  void clearAccount() => $_clearField(1);
-  @$pb.TagNumber(1)
-  AddAccountRequest ensureAccount() => $_ensure(0);
+  void clearAccountID() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get postBefore => $_getSZ(1);
+  AccountDetails get account => $_getN(1);
   @$pb.TagNumber(2)
-  set postBefore($core.String value) => $_setString(1, value);
+  set account(AccountDetails value) => $_setField(2, value);
   @$pb.TagNumber(2)
-  $core.bool hasPostBefore() => $_has(1);
+  $core.bool hasAccount() => $_has(1);
   @$pb.TagNumber(2)
-  void clearPostBefore() => $_clearField(2);
+  void clearAccount() => $_clearField(2);
+  @$pb.TagNumber(2)
+  AccountDetails ensureAccount() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  $core.String get postAfter => $_getSZ(2);
+  $core.String get postBefore => $_getSZ(2);
   @$pb.TagNumber(3)
-  set postAfter($core.String value) => $_setString(2, value);
+  set postBefore($core.String value) => $_setString(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasPostAfter() => $_has(2);
+  $core.bool hasPostBefore() => $_has(2);
   @$pb.TagNumber(3)
-  void clearPostAfter() => $_clearField(3);
+  void clearPostBefore() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get postAfter => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set postAfter($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasPostAfter() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPostAfter() => $_clearField(4);
 }
 
 class ListAccountResponse extends $pb.GeneratedMessage {
@@ -290,7 +302,7 @@ class ListAccountResponse extends $pb.GeneratedMessage {
 
 class DeleteAccountRequest extends $pb.GeneratedMessage {
   factory DeleteAccountRequest({
-    $fixnum.Int64? accountId,
+    $core.int? accountId,
   }) {
     final result = create();
     if (accountId != null) result.accountId = accountId;
@@ -310,7 +322,8 @@ class DeleteAccountRequest extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'DeleteAccountRequest',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'reddit.v1'),
       createEmptyInstance: create)
-    ..aInt64(1, _omitFieldNames ? '' : 'accountId', protoName: 'accountId')
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'accountId', $pb.PbFieldType.OU3,
+        protoName: 'accountId')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -336,9 +349,9 @@ class DeleteAccountRequest extends $pb.GeneratedMessage {
   static DeleteAccountRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $fixnum.Int64 get accountId => $_getI64(0);
+  $core.int get accountId => $_getIZ(0);
   @$pb.TagNumber(1)
-  set accountId($fixnum.Int64 value) => $_setInt64(0, value);
+  set accountId($core.int value) => $_setUnsignedInt32(0, value);
   @$pb.TagNumber(1)
   $core.bool hasAccountId() => $_has(0);
   @$pb.TagNumber(1)
@@ -389,16 +402,10 @@ class DeleteAccountResponse extends $pb.GeneratedMessage {
 
 class AddAccountRequest extends $pb.GeneratedMessage {
   factory AddAccountRequest({
-    $core.String? clientID,
-    $core.String? clientSecret,
-    $core.String? username,
-    $core.String? password,
+    AccountDetails? details,
   }) {
     final result = create();
-    if (clientID != null) result.clientID = clientID;
-    if (clientSecret != null) result.clientSecret = clientSecret;
-    if (username != null) result.username = username;
-    if (password != null) result.password = password;
+    if (details != null) result.details = details;
     return result;
   }
 
@@ -415,10 +422,8 @@ class AddAccountRequest extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'AddAccountRequest',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'reddit.v1'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'ClientID', protoName: 'ClientID')
-    ..aOS(2, _omitFieldNames ? '' : 'ClientSecret', protoName: 'ClientSecret')
-    ..aOS(3, _omitFieldNames ? '' : 'Username', protoName: 'Username')
-    ..aOS(4, _omitFieldNames ? '' : 'Password', protoName: 'Password')
+    ..aOM<AccountDetails>(1, _omitFieldNames ? '' : 'details',
+        subBuilder: AccountDetails.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -441,6 +446,73 @@ class AddAccountRequest extends $pb.GeneratedMessage {
   static AddAccountRequest getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<AddAccountRequest>(create);
   static AddAccountRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  AccountDetails get details => $_getN(0);
+  @$pb.TagNumber(1)
+  set details(AccountDetails value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasDetails() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearDetails() => $_clearField(1);
+  @$pb.TagNumber(1)
+  AccountDetails ensureDetails() => $_ensure(0);
+}
+
+class AccountDetails extends $pb.GeneratedMessage {
+  factory AccountDetails({
+    $core.String? clientID,
+    $core.String? clientSecret,
+    $core.String? username,
+    $core.String? password,
+  }) {
+    final result = create();
+    if (clientID != null) result.clientID = clientID;
+    if (clientSecret != null) result.clientSecret = clientSecret;
+    if (username != null) result.username = username;
+    if (password != null) result.password = password;
+    return result;
+  }
+
+  AccountDetails._();
+
+  factory AccountDetails.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AccountDetails.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AccountDetails',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'reddit.v1'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'ClientID', protoName: 'ClientID')
+    ..aOS(2, _omitFieldNames ? '' : 'ClientSecret', protoName: 'ClientSecret')
+    ..aOS(3, _omitFieldNames ? '' : 'Username', protoName: 'Username')
+    ..aOS(4, _omitFieldNames ? '' : 'Password', protoName: 'Password')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountDetails clone() => AccountDetails()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountDetails copyWith(void Function(AccountDetails) updates) =>
+      super.copyWith((message) => updates(message as AccountDetails))
+          as AccountDetails;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AccountDetails create() => AccountDetails._();
+  @$core.override
+  AccountDetails createEmptyInstance() => create();
+  static $pb.PbList<AccountDetails> createRepeated() =>
+      $pb.PbList<AccountDetails>();
+  @$core.pragma('dart2js:noInline')
+  static AccountDetails getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AccountDetails>(create);
+  static AccountDetails? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get clientID => $_getSZ(0);
@@ -517,45 +589,6 @@ class AddAccountResponse extends $pb.GeneratedMessage {
   static AddAccountResponse getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<AddAccountResponse>(create);
   static AddAccountResponse? _defaultInstance;
-}
-
-class Credentials extends $pb.GeneratedMessage {
-  factory Credentials() => create();
-
-  Credentials._();
-
-  factory Credentials.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory Credentials.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'Credentials',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'reddit.v1'),
-      createEmptyInstance: create)
-    ..hasRequiredFields = false;
-
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Credentials clone() => Credentials()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Credentials copyWith(void Function(Credentials) updates) =>
-      super.copyWith((message) => updates(message as Credentials))
-          as Credentials;
-
-  @$core.override
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static Credentials create() => Credentials._();
-  @$core.override
-  Credentials createEmptyInstance() => create();
-  static $pb.PbList<Credentials> createRepeated() => $pb.PbList<Credentials>();
-  @$core.pragma('dart2js:noInline')
-  static Credentials getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<Credentials>(create);
-  static Credentials? _defaultInstance;
 }
 
 class TestRequest extends $pb.GeneratedMessage {

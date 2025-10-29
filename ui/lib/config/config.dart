@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:redstash/config/service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -23,8 +24,14 @@ class AppLocalSettingsNotifier extends Notifier<AppLocalSettings> {
   AppLocalSettings build() => loadValue();
 
   AppLocalSettings loadValue() {
-    final basepath = prefs.getString(prefKeyBasepath);
-    return AppLocalSettings(basepath: basepath ?? "");
+    var basepath = "";
+    if (kIsWeb) {
+      basepath = "/";
+    } else {
+      basepath = prefs.getString(prefKeyBasepath) ?? "";
+    }
+
+    return AppLocalSettings(basepath: basepath);
   }
 
   void refetch() {

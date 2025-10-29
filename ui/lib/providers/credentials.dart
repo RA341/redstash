@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:redstash/gen/reddit/v1/reddit.connect.client.dart';
 import 'package:redstash/gen/reddit/v1/reddit.pb.dart';
 import 'package:redstash/grpc/api.dart';
+import 'package:redstash/providers/account.dart';
+import 'package:redstash/providers/account.dart';
 
 final credentialsApiProvider = Provider<RedditServiceClient>((ref) {
   final transport = ref.watch(connectTransportProvider);
@@ -24,6 +26,7 @@ final credentialListProvider =
 
 class CredentialsNotifier extends AsyncNotifier<List<FullCredentials>> {
   late final cred = ref.watch(credentialsApiProvider);
+  late final activeAccount = ref.watch(activeAccountProvider);
 
   @override
   Future<List<FullCredentials>> build() => fetch();
@@ -32,7 +35,16 @@ class CredentialsNotifier extends AsyncNotifier<List<FullCredentials>> {
     var resp = await mustRunGrpcRequest(
       () => cred.listAccount(ListAccountRequest()),
     );
-    return resp.cred.toList();
+
+    var list = resp.cred.toList();
+
+    if (list.isNotEmpty && activeAccount == null) {
+      ref
+          .read(activeAccountProvider.notifier)
+          .switchAccount(list.first.accountID);
+    }
+
+    return list;
   }
 
   Future<void> refetch() async {
@@ -40,8 +52,10 @@ class CredentialsNotifier extends AsyncNotifier<List<FullCredentials>> {
     state = await AsyncValue.guard(fetch);
   }
 
-  Future<String?> add(AddAccountRequest newCred) async {
-    final (_, err) = await runGrpcRequest(() => cred.addAccount(newCred));
+  Future<String?> add(AccountDetails newCred) async {
+    final (_, err) = await runGrpcRequest(
+      () => cred.addAccount(AddAccountRequest(details: newCred)),
+    );
     if (err.isNotEmpty) return err;
     await refetch();
 
@@ -50,7 +64,7 @@ class CredentialsNotifier extends AsyncNotifier<List<FullCredentials>> {
 
   Future<String?> delete(int credId) async {
     final (_, err) = await runGrpcRequest(
-      () => cred.deleteAccount(DeleteAccountRequest(accountId: Int64(credId))),
+      () => cred.deleteAccount(DeleteAccountRequest(accountId: credId)),
     );
     if (err.isEmpty) return err;
     await refetch();

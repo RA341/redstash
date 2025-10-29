@@ -48,24 +48,25 @@ final $typed_data.Uint8List listAccountRequestDescriptor =
 const FullCredentials$json = {
   '1': 'FullCredentials',
   '2': [
+    {'1': 'AccountID', '3': 1, '4': 1, '5': 13, '10': 'AccountID'},
     {
       '1': 'account',
-      '3': 1,
+      '3': 2,
       '4': 1,
       '5': 11,
-      '6': '.reddit.v1.AddAccountRequest',
+      '6': '.reddit.v1.AccountDetails',
       '10': 'account'
     },
-    {'1': 'postBefore', '3': 2, '4': 1, '5': 9, '10': 'postBefore'},
-    {'1': 'postAfter', '3': 3, '4': 1, '5': 9, '10': 'postAfter'},
+    {'1': 'postBefore', '3': 3, '4': 1, '5': 9, '10': 'postBefore'},
+    {'1': 'postAfter', '3': 4, '4': 1, '5': 9, '10': 'postAfter'},
   ],
 };
 
 /// Descriptor for `FullCredentials`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List fullCredentialsDescriptor = $convert.base64Decode(
-    'Cg9GdWxsQ3JlZGVudGlhbHMSNgoHYWNjb3VudBgBIAEoCzIcLnJlZGRpdC52MS5BZGRBY2NvdW'
-    '50UmVxdWVzdFIHYWNjb3VudBIeCgpwb3N0QmVmb3JlGAIgASgJUgpwb3N0QmVmb3JlEhwKCXBv'
-    'c3RBZnRlchgDIAEoCVIJcG9zdEFmdGVy');
+    'Cg9GdWxsQ3JlZGVudGlhbHMSHAoJQWNjb3VudElEGAEgASgNUglBY2NvdW50SUQSMwoHYWNjb3'
+    'VudBgCIAEoCzIZLnJlZGRpdC52MS5BY2NvdW50RGV0YWlsc1IHYWNjb3VudBIeCgpwb3N0QmVm'
+    'b3JlGAMgASgJUgpwb3N0QmVmb3JlEhwKCXBvc3RBZnRlchgEIAEoCVIJcG9zdEFmdGVy');
 
 @$core.Deprecated('Use listAccountResponseDescriptor instead')
 const ListAccountResponse$json = {
@@ -91,13 +92,13 @@ final $typed_data.Uint8List listAccountResponseDescriptor = $convert.base64Decod
 const DeleteAccountRequest$json = {
   '1': 'DeleteAccountRequest',
   '2': [
-    {'1': 'accountId', '3': 1, '4': 1, '5': 3, '10': 'accountId'},
+    {'1': 'accountId', '3': 1, '4': 1, '5': 13, '10': 'accountId'},
   ],
 };
 
 /// Descriptor for `DeleteAccountRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List deleteAccountRequestDescriptor = $convert.base64Decode(
-    'ChREZWxldGVBY2NvdW50UmVxdWVzdBIcCglhY2NvdW50SWQYASABKANSCWFjY291bnRJZA==');
+    'ChREZWxldGVBY2NvdW50UmVxdWVzdBIcCglhY2NvdW50SWQYASABKA1SCWFjY291bnRJZA==');
 
 @$core.Deprecated('Use deleteAccountResponseDescriptor instead')
 const DeleteAccountResponse$json = {
@@ -112,6 +113,26 @@ final $typed_data.Uint8List deleteAccountResponseDescriptor =
 const AddAccountRequest$json = {
   '1': 'AddAccountRequest',
   '2': [
+    {
+      '1': 'details',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.reddit.v1.AccountDetails',
+      '10': 'details'
+    },
+  ],
+};
+
+/// Descriptor for `AddAccountRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List addAccountRequestDescriptor = $convert.base64Decode(
+    'ChFBZGRBY2NvdW50UmVxdWVzdBIzCgdkZXRhaWxzGAEgASgLMhkucmVkZGl0LnYxLkFjY291bn'
+    'REZXRhaWxzUgdkZXRhaWxz');
+
+@$core.Deprecated('Use accountDetailsDescriptor instead')
+const AccountDetails$json = {
+  '1': 'AccountDetails',
+  '2': [
     {'1': 'ClientID', '3': 1, '4': 1, '5': 9, '10': 'ClientID'},
     {'1': 'ClientSecret', '3': 2, '4': 1, '5': 9, '10': 'ClientSecret'},
     {'1': 'Username', '3': 3, '4': 1, '5': 9, '10': 'Username'},
@@ -119,11 +140,11 @@ const AddAccountRequest$json = {
   ],
 };
 
-/// Descriptor for `AddAccountRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List addAccountRequestDescriptor = $convert.base64Decode(
-    'ChFBZGRBY2NvdW50UmVxdWVzdBIaCghDbGllbnRJRBgBIAEoCVIIQ2xpZW50SUQSIgoMQ2xpZW'
-    '50U2VjcmV0GAIgASgJUgxDbGllbnRTZWNyZXQSGgoIVXNlcm5hbWUYAyABKAlSCFVzZXJuYW1l'
-    'EhoKCFBhc3N3b3JkGAQgASgJUghQYXNzd29yZA==');
+/// Descriptor for `AccountDetails`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List accountDetailsDescriptor = $convert.base64Decode(
+    'Cg5BY2NvdW50RGV0YWlscxIaCghDbGllbnRJRBgBIAEoCVIIQ2xpZW50SUQSIgoMQ2xpZW50U2'
+    'VjcmV0GAIgASgJUgxDbGllbnRTZWNyZXQSGgoIVXNlcm5hbWUYAyABKAlSCFVzZXJuYW1lEhoK'
+    'CFBhc3N3b3JkGAQgASgJUghQYXNzd29yZA==');
 
 @$core.Deprecated('Use addAccountResponseDescriptor instead')
 const AddAccountResponse$json = {
@@ -133,15 +154,6 @@ const AddAccountResponse$json = {
 /// Descriptor for `AddAccountResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List addAccountResponseDescriptor =
     $convert.base64Decode('ChJBZGRBY2NvdW50UmVzcG9uc2U=');
-
-@$core.Deprecated('Use credentialsDescriptor instead')
-const Credentials$json = {
-  '1': 'Credentials',
-};
-
-/// Descriptor for `Credentials`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List credentialsDescriptor =
-    $convert.base64Decode('CgtDcmVkZW50aWFscw==');
 
 @$core.Deprecated('Use testRequestDescriptor instead')
 const TestRequest$json = {
@@ -195,6 +207,7 @@ const $core.Map<$core.String, $core.dynamic> RedditServiceBase$json = {
 const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>>
     RedditServiceBase$messageJson = {
   '.reddit.v1.AddAccountRequest': AddAccountRequest$json,
+  '.reddit.v1.AccountDetails': AccountDetails$json,
   '.reddit.v1.AddAccountResponse': AddAccountResponse$json,
   '.reddit.v1.DeleteAccountRequest': DeleteAccountRequest$json,
   '.reddit.v1.DeleteAccountResponse': DeleteAccountResponse$json,

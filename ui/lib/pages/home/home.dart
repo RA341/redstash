@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:redstash/gen/reddit/v1/reddit.pb.dart';
-import 'package:redstash/grpc/api.dart';
+import 'package:redstash/pages/home/add_account.dart';
+import 'package:redstash/pages/home/post_list.dart';
+import 'package:redstash/providers/account.dart';
 import 'package:redstash/providers/credentials.dart';
 
 class HomePage extends ConsumerWidget {
@@ -11,170 +11,55 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("redstash home", style: TextStyle(fontSize: 40)),
-        actions: [
-          ElevatedButton(
-            onPressed: () async {
-              await showDialog(
-                context: context,
-                builder: (context) => AddAccountWidget(),
-              );
-            },
-            child: Text("Add"),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          spacing: 10,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [],
-        ),
-      ),
-    );
-  }
-}
+    final accountList = ref.watch(credentialListProvider);
 
-class AddAccountWidget extends HookConsumerWidget {
-  const AddAccountWidget({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final appID = useTextEditingController();
-    final appSecret = useTextEditingController();
-    final username = useTextEditingController();
-    final password = useTextEditingController();
-
-    final isAdding = useState(false);
-
-    return Dialog(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SizedBox(
-            height: constraints.maxHeight * 0.8,
-            width: constraints.maxWidth * 0.8,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                spacing: 10,
-                children: [
-                  Text(
-                    "Add a new reddit account",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  Row(
-                    spacing: 10,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          spacing: 10,
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text("Reddit API Details"),
-                            TextField(
-                              controller: appID,
-                              decoration: InputDecoration(
-                                labelText: 'Client ID',
-                                hintText: 'Reddit Client secret',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            TextField(
-                              controller: appSecret,
-                              decoration: InputDecoration(
-                                labelText: 'Client secret',
-                                hintText: 'Reddit Client secret',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            Text("Generate: https://old.reddit.com/prefs/apps"),
-                          ],
-                        ),
+    return accountList.when(
+      data: (accounts) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text("Redstash home", style: TextStyle(fontSize: 20)),
+            actions: [
+              DropdownMenu<int?>(
+                initialSelection: ref.watch(activeAccountProvider),
+                onSelected: ref.activeAccount.switchAccount,
+                dropdownMenuEntries: accounts
+                    .map(
+                      (e) => DropdownMenuEntry(
+                        value: e.accountID,
+                        label: e.account.username,
                       ),
-                      Expanded(
-                        child: Column(
-                          spacing: 10,
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text("Reddit Details"),
-                            TextField(
-                              controller: username,
-                              decoration: InputDecoration(
-                                labelText: 'Username',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            TextField(
-                              controller: password,
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            Text("TODO help text"),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  ElevatedButton(
-                    onPressed: isAdding.value
-                        ? null
-                        : () async {
-                            isAdding.value = true;
-
-                            final err = await ref.cred().add(
-                              AddAccountRequest(
-                                clientID: appID.text.trim(),
-                                clientSecret: appSecret.text.trim(),
-                                username: username.text.trim(),
-                                password: password.text.trim(),
-                              ),
-                            );
-
-                            if (!context.mounted) return;
-
-                            if (err.notNull()) {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text("Error adding account"),
-                                  content: Text(err ?? ""),
-                                  actions: [
-                                    ElevatedButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                      child: Text("Close"),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
-
-                            isAdding.value = false;
-                          },
-                    child: Text(isAdding.value ? "Adding" : "Add"),
-                  ),
-                  Divider(),
-                  CredentialList(),
-
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text("Close"),
-                  ),
-                ],
+                    )
+                    .toList(),
               ),
-            ),
-          );
-        },
-      ),
+              ElevatedButton(
+                onPressed: () async {
+                  await showDialog(
+                    context: context,
+                    builder: (context) => AddAccountWidget(),
+                  );
+                },
+                child: Text("Add"),
+              ),
+            ],
+          ),
+          body: PostList(),
+        );
+      },
+      error: (error, stackTrace) {
+        // todo refactor and make a nice shared error view
+        return Center(
+          child: Column(
+            children: [
+              Text("Error getting accounts"),
+              Text(error.toString()),
+              Text(error.toString()),
+            ],
+          ),
+        );
+      },
+      loading: () {
+        return Center(child: CircularProgressIndicator());
+      },
     );
   }
 }

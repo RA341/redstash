@@ -11,6 +11,7 @@ import (
 	"github.com/RA341/redstash/internal/config"
 	"github.com/RA341/redstash/internal/database"
 	"github.com/RA341/redstash/internal/downloader"
+	"github.com/RA341/redstash/internal/info"
 	"github.com/RA341/redstash/internal/posts"
 	"github.com/RA341/redstash/internal/reddit"
 
@@ -28,9 +29,13 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 	managerStore := reddit.NewGormCredentialStore(db)
 	postStore := reddit.NewGormPostStore(db)
 
-	err := postStore.ClearDownloadData()
-	if err != nil {
-		return nil, fmt.Errorf("error clearing download data: %w", err)
+	if info.IsDev() {
+		log.Info().Msg("Dev Mode clearing downLOAD data")
+		err := postStore.ClearDownloadData()
+		if err != nil {
+			return nil, fmt.Errorf("error clearing download data: %w", err)
+		}
+
 	}
 
 	// services

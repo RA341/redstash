@@ -11,7 +11,7 @@ vars:
   WEB_DIR: ../parmesan/source/gen
   GENERATED_DIR: generated
   PROTODIR: protos
-  GO_PACKAGE_BASE: "github.com/RA341/gouda/generated"
+  GO_PACKAGE_BASE: "github.com/RA341/redstash/generated"
 
 tasks:
   proto:*:*:

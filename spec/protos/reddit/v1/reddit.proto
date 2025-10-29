@@ -21,9 +21,10 @@ message RunTaskResponse {}
 message ListAccountRequest {}
 
 message FullCredentials {
-  AddAccountRequest account = 1;
-  string postBefore = 2;
-  string postAfter = 3;
+  uint32 AccountID = 1;
+  AccountDetails account = 2;
+  string postBefore = 3;
+  string postAfter = 4;
 }
 
 message ListAccountResponse {
@@ -31,13 +32,17 @@ message ListAccountResponse {
 }
 
 message DeleteAccountRequest {
-  int64 accountId = 1;
+  uint32 accountId = 1;
 }
 
 message DeleteAccountResponse {}
 
 
 message AddAccountRequest {
+  AccountDetails details = 1;
+}
+
+message AccountDetails {
   string ClientID = 1;
   string ClientSecret = 2;
   string Username = 3;
@@ -45,10 +50,6 @@ message AddAccountRequest {
 }
 
 message AddAccountResponse {}
-
-message Credentials {
-
-}
 
 message TestRequest {}
 

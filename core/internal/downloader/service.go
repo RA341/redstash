@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/RA341/redstash/internal/config"
 	"github.com/RA341/redstash/internal/reddit"
 	"github.com/RA341/redstash/pkg/schd"
 	"github.com/rs/zerolog"
@@ -16,18 +17,23 @@ import (
 type UpdatePostFn func(post *reddit.Post) error
 
 type Service struct {
-	downloadDir        string
-	store              reddit.PostStore
-	maxDownloadWorkers int
-	maxPostsToFetch    int
-	updatePost         UpdatePostFn
+	conf  ConfigProvider
+	store reddit.PostStore
+
+	updatePost UpdatePostFn
 
 	downloaderFnMap map[string]Downloader
 	triggerChan     chan struct{}
 	Task            *schd.Scheduler
 }
 
-func NewService(downloadDir string, store reddit.PostStore, updatePost UpdatePostFn) *Service {
+type ConfigProvider func() *config.Downloader
+
+func NewService(
+	conf ConfigProvider,
+	store reddit.PostStore,
+	updatePost UpdatePostFn,
+) *Service {
 	client := NewClient()
 	err := client.Login()
 	if err != nil {
@@ -43,22 +49,16 @@ func NewService(downloadDir string, store reddit.PostStore, updatePost UpdatePos
 	}
 
 	s := &Service{
-		store:       store,
-		downloadDir: downloadDir,
-
-		maxDownloadWorkers: 30,
-		maxPostsToFetch:    100,
+		store: store,
+		conf:  conf,
 
 		updatePost:      updatePost,
 		downloaderFnMap: downloaderMap,
 	}
 
-	// todo move to config
-	downloadCheckInterval := time.Hour
-
 	s.Task = schd.NewScheduler(
 		s.StartDownloader,
-		downloadCheckInterval,
+		config.GetDurationOrDefault(time.Hour, conf().CheckInterval),
 	)
 
 	return s
@@ -67,7 +67,7 @@ func NewService(downloadDir string, store reddit.PostStore, updatePost UpdatePos
 func (s *Service) StartDownloader() {
 	log.Info().Msg("downloader started")
 
-	postChan := make(chan *reddit.Post, s.maxPostsToFetch)
+	postChan := make(chan *reddit.Post, s.conf().MaxConcurrentDownloads)
 
 	wg := errgroup.Group{}
 	wg.Go(func() error {
@@ -94,13 +94,13 @@ func (s *Service) postProducer(postChannel chan *reddit.Post) error {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
-	posts := make([]reddit.Post, 0, s.maxPostsToFetch)
+	posts := make([]reddit.Post, 0, s.conf().MaxQueueSize)
 
 	for {
 		select {
 		case <-ticker.C:
 			posts = posts[:0] // clear slice
-			err := s.store.ListNonDownloaded(s.maxPostsToFetch, &posts)
+			err := s.store.ListNonDownloaded(s.conf().MaxQueueSize, &posts)
 			if err != nil {
 				return err
 			}
@@ -115,7 +115,7 @@ func (s *Service) postProducer(postChannel chan *reddit.Post) error {
 			}
 
 			// Check if we got fewer results than expected
-			if len(posts) < s.maxPostsToFetch {
+			if len(posts) < s.conf().MaxQueueSize {
 				strikes++
 				if strikes >= strikeLimit {
 					log.Info().Msg("Exiting downloader")
@@ -131,7 +131,7 @@ func (s *Service) postProducer(postChannel chan *reddit.Post) error {
 }
 
 func (s *Service) deployWorkers(postChannel chan *reddit.Post) {
-	workerSem := make(chan struct{}, s.maxDownloadWorkers)
+	workerSem := make(chan struct{}, s.conf().MaxConcurrentDownloads)
 
 	worker := func(post *reddit.Post) {
 		subLogger := log.With().Str("post", post.RedditId).Logger()
@@ -165,7 +165,7 @@ func (s *Service) deployWorkers(postChannel chan *reddit.Post) {
 func (s *Service) download(log *zerolog.Logger, post *reddit.Post) error {
 	log.Info().Msg("Downloading post")
 
-	baseFolder := filepath.Join(s.downloadDir, post.RedditId)
+	baseFolder := filepath.Join(s.conf().DownloadDir, post.RedditId)
 	err := os.MkdirAll(baseFolder, 0755)
 	if err != nil {
 		return fmt.Errorf("unable to create download directory at %s, err: %w", baseFolder, err)

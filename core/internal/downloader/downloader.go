@@ -14,16 +14,6 @@ import (
 	"github.com/RA341/redstash/pkg/fileutil"
 )
 
-type Image struct {
-	Path string `json:"path"`
-}
-
-type Downloader func(post *reddit.Post, downloadDir string) error
-
-type Gallery struct {
-	ImgList []Image `json:"images"`
-}
-
 func downloadGallery(post *reddit.Post, downloadDir string) error {
 	data, err := getMap(post)
 	if err != nil {

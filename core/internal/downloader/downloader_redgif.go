@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/RA341/redstash/internal/reddit"
+	"github.com/RA341/redstash/pkg/fileutil"
 	"resty.dev/v3"
 )
 
@@ -37,6 +38,8 @@ func (c *RedgifsClient) Login() error {
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}
+	defer fileutil.Close(resp.Body)
+
 	if resp.IsError() {
 		return fmt.Errorf("token endpoint returned status %d", resp.StatusCode())
 	}
@@ -80,6 +83,8 @@ func (c *RedgifsClient) GetDownloadLink(watchOrID string, preferFileURL bool) (s
 	if err != nil {
 		return "", fmt.Errorf("api request failed: %w", err)
 	}
+	defer fileutil.Close(resp.Body)
+
 	if resp.StatusCode() == 404 {
 		return "", fmt.Errorf("gif not found (404)")
 	}

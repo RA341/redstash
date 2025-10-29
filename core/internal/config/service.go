@@ -37,7 +37,7 @@ func loadConfig() (*AppConfig, error) {
 
 	pathsToResolve := []*string{
 		&conf.ConfigDir,
-		&conf.DownloadDir,
+		&conf.Downloader.DownloadDir,
 	}
 	for _, p := range pathsToResolve {
 		absPath, err := filepath.Abs(*p)

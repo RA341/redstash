@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/RA341/redstash/internal/config"
 	"github.com/RA341/redstash/internal/database"
 	"github.com/RA341/redstash/internal/downloader"
-	"github.com/RA341/redstash/internal/info"
 	"github.com/RA341/redstash/internal/posts"
 	"github.com/RA341/redstash/internal/reddit"
 
@@ -29,18 +27,19 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 	managerStore := reddit.NewGormCredentialStore(db)
 	postStore := reddit.NewGormPostStore(db)
 
-	if info.IsDev() {
-		log.Info().Msg("Dev Mode clearing downLOAD data")
-		err := postStore.ClearDownloadData()
-		if err != nil {
-			return nil, fmt.Errorf("error clearing download data: %w", err)
-		}
-
-	}
+	//if info.IsDev() {
+	//	log.Info().Msg("Dev Mode clearing download data")
+	//	err := postStore.ClearDownloadData()
+	//	if err != nil {
+	//		return nil, fmt.Errorf("error clearing download data: %w", err)
+	//	}
+	//}
 
 	// services
 	downloaderService := downloader.NewService(
-		conf.DownloadDir,
+		func() *config.Downloader {
+			return &conf.Downloader
+		},
 		postStore,
 		postStore.Save,
 	)
@@ -50,7 +49,7 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 		postStore,
 		downloaderService.Task.Manual,
 	)
-	postSrv := posts.NewService(postStore, conf.DownloadDir)
+	postSrv := posts.NewService(postStore, conf.Downloader.DownloadDir)
 
 	// start any previous incomplete downloads
 	downloaderService.Task.Manual()

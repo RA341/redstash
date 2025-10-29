@@ -2,11 +2,14 @@ package app
 
 import (
 	"net/http"
+	"strings"
 
+	postsrpc "github.com/RA341/redstash/generated/posts/v1/v1connect"
 	rmrpc "github.com/RA341/redstash/generated/reddit/v1/v1connect"
 	"github.com/RA341/redstash/internal/config"
 	"github.com/RA341/redstash/internal/database"
 	"github.com/RA341/redstash/internal/downloader"
+	"github.com/RA341/redstash/internal/posts"
 	"github.com/RA341/redstash/internal/reddit"
 
 	"github.com/rs/zerolog/log"
@@ -35,6 +38,7 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 		postStore,
 		downloaderService.TriggerDownloader,
 	)
+	postSrv := posts.NewService(postStore, conf.DownloadDir)
 
 	// start any previous incomplete downloads
 	downloaderService.TriggerDownloader()
@@ -49,6 +53,12 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 		func() (string, http.Handler) {
 			return rmrpc.NewRedditServiceHandler(reddit.NewHandler(redditManager))
 		},
+		func() (string, http.Handler) {
+			return postsrpc.NewPostsServiceHandler(posts.NewHandler(postSrv))
+		},
+		func() (string, http.Handler) {
+			return registerHttpHandler("/api/posts", posts.NewHandlerHttp(postSrv))
+		},
 	}
 	for _, hand := range handlers {
 		path, handler := hand()
@@ -60,4 +70,19 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 		Config: conf,
 		DB:     db,
 	}, nil
+}
+
+func registerHttpHandler(basePath string, subMux http.Handler) (string, http.Handler) {
+	if !strings.HasSuffix(basePath, "/") {
+		basePath = basePath + "/"
+	}
+
+	baseHandler := http.StripPrefix(strings.TrimSuffix(basePath, "/"), subMux)
+	// todo
+	//if a.Config.Auth.Enable {
+	//	httpAuth := auth.NewHttpAuthMiddleware(a.Auth)
+	//	baseHandler = httpAuth(baseHandler)
+	//}
+
+	return basePath, baseHandler
 }

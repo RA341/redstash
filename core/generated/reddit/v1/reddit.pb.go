@@ -139,9 +139,10 @@ func (*ListAccountRequest) Descriptor() ([]byte, []int) {
 
 type FullCredentials struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Account       *AddAccountRequest     `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
-	PostBefore    string                 `protobuf:"bytes,2,opt,name=postBefore,proto3" json:"postBefore,omitempty"`
-	PostAfter     string                 `protobuf:"bytes,3,opt,name=postAfter,proto3" json:"postAfter,omitempty"`
+	AccountID     uint32                 `protobuf:"varint,1,opt,name=AccountID,proto3" json:"AccountID,omitempty"`
+	Account       *AccountDetails        `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	PostBefore    string                 `protobuf:"bytes,3,opt,name=postBefore,proto3" json:"postBefore,omitempty"`
+	PostAfter     string                 `protobuf:"bytes,4,opt,name=postAfter,proto3" json:"postAfter,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -176,7 +177,14 @@ func (*FullCredentials) Descriptor() ([]byte, []int) {
 	return file_reddit_v1_reddit_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *FullCredentials) GetAccount() *AddAccountRequest {
+func (x *FullCredentials) GetAccountID() uint32 {
+	if x != nil {
+		return x.AccountID
+	}
+	return 0
+}
+
+func (x *FullCredentials) GetAccount() *AccountDetails {
 	if x != nil {
 		return x.Account
 	}
@@ -243,7 +251,7 @@ func (x *ListAccountResponse) GetCred() []*FullCredentials {
 
 type DeleteAccountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccountId     int64                  `protobuf:"varint,1,opt,name=accountId,proto3" json:"accountId,omitempty"`
+	AccountId     uint32                 `protobuf:"varint,1,opt,name=accountId,proto3" json:"accountId,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -278,7 +286,7 @@ func (*DeleteAccountRequest) Descriptor() ([]byte, []int) {
 	return file_reddit_v1_reddit_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *DeleteAccountRequest) GetAccountId() int64 {
+func (x *DeleteAccountRequest) GetAccountId() uint32 {
 	if x != nil {
 		return x.AccountId
 	}
@@ -323,10 +331,7 @@ func (*DeleteAccountResponse) Descriptor() ([]byte, []int) {
 
 type AddAccountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ClientID      string                 `protobuf:"bytes,1,opt,name=ClientID,proto3" json:"ClientID,omitempty"`
-	ClientSecret  string                 `protobuf:"bytes,2,opt,name=ClientSecret,proto3" json:"ClientSecret,omitempty"`
-	Username      string                 `protobuf:"bytes,3,opt,name=Username,proto3" json:"Username,omitempty"`
-	Password      string                 `protobuf:"bytes,4,opt,name=Password,proto3" json:"Password,omitempty"`
+	Details       *AccountDetails        `protobuf:"bytes,1,opt,name=details,proto3" json:"details,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -361,28 +366,75 @@ func (*AddAccountRequest) Descriptor() ([]byte, []int) {
 	return file_reddit_v1_reddit_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *AddAccountRequest) GetClientID() string {
+func (x *AddAccountRequest) GetDetails() *AccountDetails {
+	if x != nil {
+		return x.Details
+	}
+	return nil
+}
+
+type AccountDetails struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClientID      string                 `protobuf:"bytes,1,opt,name=ClientID,proto3" json:"ClientID,omitempty"`
+	ClientSecret  string                 `protobuf:"bytes,2,opt,name=ClientSecret,proto3" json:"ClientSecret,omitempty"`
+	Username      string                 `protobuf:"bytes,3,opt,name=Username,proto3" json:"Username,omitempty"`
+	Password      string                 `protobuf:"bytes,4,opt,name=Password,proto3" json:"Password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AccountDetails) Reset() {
+	*x = AccountDetails{}
+	mi := &file_reddit_v1_reddit_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AccountDetails) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AccountDetails) ProtoMessage() {}
+
+func (x *AccountDetails) ProtoReflect() protoreflect.Message {
+	mi := &file_reddit_v1_reddit_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AccountDetails.ProtoReflect.Descriptor instead.
+func (*AccountDetails) Descriptor() ([]byte, []int) {
+	return file_reddit_v1_reddit_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *AccountDetails) GetClientID() string {
 	if x != nil {
 		return x.ClientID
 	}
 	return ""
 }
 
-func (x *AddAccountRequest) GetClientSecret() string {
+func (x *AccountDetails) GetClientSecret() string {
 	if x != nil {
 		return x.ClientSecret
 	}
 	return ""
 }
 
-func (x *AddAccountRequest) GetUsername() string {
+func (x *AccountDetails) GetUsername() string {
 	if x != nil {
 		return x.Username
 	}
 	return ""
 }
 
-func (x *AddAccountRequest) GetPassword() string {
+func (x *AccountDetails) GetPassword() string {
 	if x != nil {
 		return x.Password
 	}
@@ -397,7 +449,7 @@ type AddAccountResponse struct {
 
 func (x *AddAccountResponse) Reset() {
 	*x = AddAccountResponse{}
-	mi := &file_reddit_v1_reddit_proto_msgTypes[8]
+	mi := &file_reddit_v1_reddit_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -409,7 +461,7 @@ func (x *AddAccountResponse) String() string {
 func (*AddAccountResponse) ProtoMessage() {}
 
 func (x *AddAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_reddit_v1_reddit_proto_msgTypes[8]
+	mi := &file_reddit_v1_reddit_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -422,42 +474,6 @@ func (x *AddAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddAccountResponse.ProtoReflect.Descriptor instead.
 func (*AddAccountResponse) Descriptor() ([]byte, []int) {
-	return file_reddit_v1_reddit_proto_rawDescGZIP(), []int{8}
-}
-
-type Credentials struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Credentials) Reset() {
-	*x = Credentials{}
-	mi := &file_reddit_v1_reddit_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Credentials) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Credentials) ProtoMessage() {}
-
-func (x *Credentials) ProtoReflect() protoreflect.Message {
-	mi := &file_reddit_v1_reddit_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Credentials.ProtoReflect.Descriptor instead.
-func (*Credentials) Descriptor() ([]byte, []int) {
 	return file_reddit_v1_reddit_proto_rawDescGZIP(), []int{9}
 }
 
@@ -541,25 +557,27 @@ const file_reddit_v1_reddit_proto_rawDesc = "" +
 	"\x0eRunTaskRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\"\x11\n" +
 	"\x0fRunTaskResponse\"\x14\n" +
-	"\x12ListAccountRequest\"\x87\x01\n" +
-	"\x0fFullCredentials\x126\n" +
-	"\aaccount\x18\x01 \x01(\v2\x1c.reddit.v1.AddAccountRequestR\aaccount\x12\x1e\n" +
+	"\x12ListAccountRequest\"\xa2\x01\n" +
+	"\x0fFullCredentials\x12\x1c\n" +
+	"\tAccountID\x18\x01 \x01(\rR\tAccountID\x123\n" +
+	"\aaccount\x18\x02 \x01(\v2\x19.reddit.v1.AccountDetailsR\aaccount\x12\x1e\n" +
 	"\n" +
-	"postBefore\x18\x02 \x01(\tR\n" +
+	"postBefore\x18\x03 \x01(\tR\n" +
 	"postBefore\x12\x1c\n" +
-	"\tpostAfter\x18\x03 \x01(\tR\tpostAfter\"E\n" +
+	"\tpostAfter\x18\x04 \x01(\tR\tpostAfter\"E\n" +
 	"\x13ListAccountResponse\x12.\n" +
 	"\x04cred\x18\x01 \x03(\v2\x1a.reddit.v1.FullCredentialsR\x04cred\"4\n" +
 	"\x14DeleteAccountRequest\x12\x1c\n" +
-	"\taccountId\x18\x01 \x01(\x03R\taccountId\"\x17\n" +
-	"\x15DeleteAccountResponse\"\x8b\x01\n" +
-	"\x11AddAccountRequest\x12\x1a\n" +
+	"\taccountId\x18\x01 \x01(\rR\taccountId\"\x17\n" +
+	"\x15DeleteAccountResponse\"H\n" +
+	"\x11AddAccountRequest\x123\n" +
+	"\adetails\x18\x01 \x01(\v2\x19.reddit.v1.AccountDetailsR\adetails\"\x88\x01\n" +
+	"\x0eAccountDetails\x12\x1a\n" +
 	"\bClientID\x18\x01 \x01(\tR\bClientID\x12\"\n" +
 	"\fClientSecret\x18\x02 \x01(\tR\fClientSecret\x12\x1a\n" +
 	"\bUsername\x18\x03 \x01(\tR\bUsername\x12\x1a\n" +
 	"\bPassword\x18\x04 \x01(\tR\bPassword\"\x14\n" +
 	"\x12AddAccountResponse\"\r\n" +
-	"\vCredentials\"\r\n" +
 	"\vTestRequest\"\x0e\n" +
 	"\fTestResponse2\xc6\x02\n" +
 	"\rRedditService\x12K\n" +
@@ -593,27 +611,28 @@ var file_reddit_v1_reddit_proto_goTypes = []any{
 	(*DeleteAccountRequest)(nil),  // 5: reddit.v1.DeleteAccountRequest
 	(*DeleteAccountResponse)(nil), // 6: reddit.v1.DeleteAccountResponse
 	(*AddAccountRequest)(nil),     // 7: reddit.v1.AddAccountRequest
-	(*AddAccountResponse)(nil),    // 8: reddit.v1.AddAccountResponse
-	(*Credentials)(nil),           // 9: reddit.v1.Credentials
+	(*AccountDetails)(nil),        // 8: reddit.v1.AccountDetails
+	(*AddAccountResponse)(nil),    // 9: reddit.v1.AddAccountResponse
 	(*TestRequest)(nil),           // 10: reddit.v1.TestRequest
 	(*TestResponse)(nil),          // 11: reddit.v1.TestResponse
 }
 var file_reddit_v1_reddit_proto_depIdxs = []int32{
-	7, // 0: reddit.v1.FullCredentials.account:type_name -> reddit.v1.AddAccountRequest
+	8, // 0: reddit.v1.FullCredentials.account:type_name -> reddit.v1.AccountDetails
 	3, // 1: reddit.v1.ListAccountResponse.cred:type_name -> reddit.v1.FullCredentials
-	7, // 2: reddit.v1.RedditService.AddAccount:input_type -> reddit.v1.AddAccountRequest
-	5, // 3: reddit.v1.RedditService.DeleteAccount:input_type -> reddit.v1.DeleteAccountRequest
-	2, // 4: reddit.v1.RedditService.ListAccount:input_type -> reddit.v1.ListAccountRequest
-	0, // 5: reddit.v1.RedditService.RunTask:input_type -> reddit.v1.RunTaskRequest
-	8, // 6: reddit.v1.RedditService.AddAccount:output_type -> reddit.v1.AddAccountResponse
-	6, // 7: reddit.v1.RedditService.DeleteAccount:output_type -> reddit.v1.DeleteAccountResponse
-	4, // 8: reddit.v1.RedditService.ListAccount:output_type -> reddit.v1.ListAccountResponse
-	1, // 9: reddit.v1.RedditService.RunTask:output_type -> reddit.v1.RunTaskResponse
-	6, // [6:10] is the sub-list for method output_type
-	2, // [2:6] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	8, // 2: reddit.v1.AddAccountRequest.details:type_name -> reddit.v1.AccountDetails
+	7, // 3: reddit.v1.RedditService.AddAccount:input_type -> reddit.v1.AddAccountRequest
+	5, // 4: reddit.v1.RedditService.DeleteAccount:input_type -> reddit.v1.DeleteAccountRequest
+	2, // 5: reddit.v1.RedditService.ListAccount:input_type -> reddit.v1.ListAccountRequest
+	0, // 6: reddit.v1.RedditService.RunTask:input_type -> reddit.v1.RunTaskRequest
+	9, // 7: reddit.v1.RedditService.AddAccount:output_type -> reddit.v1.AddAccountResponse
+	6, // 8: reddit.v1.RedditService.DeleteAccount:output_type -> reddit.v1.DeleteAccountResponse
+	4, // 9: reddit.v1.RedditService.ListAccount:output_type -> reddit.v1.ListAccountResponse
+	1, // 10: reddit.v1.RedditService.RunTask:output_type -> reddit.v1.RunTaskResponse
+	7, // [7:11] is the sub-list for method output_type
+	3, // [3:7] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_reddit_v1_reddit_proto_init() }

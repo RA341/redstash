@@ -45,7 +45,8 @@ func (h *Handler) ListAccount(context.Context, *connect.Request[v1.ListAccountRe
 	var ls []*v1.FullCredentials
 	for _, item := range list {
 		ls = append(ls, &v1.FullCredentials{
-			Account: &v1.AddAccountRequest{
+			AccountID: uint32(item.ID),
+			Account: &v1.AccountDetails{
 				ClientID:     item.ClientID,
 				ClientSecret: item.ClientSecret,
 				Username:     item.Username,
@@ -64,10 +65,11 @@ func (h *Handler) RunTask(ctx context.Context, req *connect.Request[v1.RunTaskRe
 }
 
 func CredFromRPC(msg *v1.AddAccountRequest) Credential {
+	details := msg.Details
 	return Credential{
-		ClientID:     msg.ClientID,
-		ClientSecret: msg.ClientSecret,
-		Username:     msg.Username,
-		Password:     msg.Password,
+		ClientID:     details.ClientID,
+		ClientSecret: details.ClientSecret,
+		Username:     details.Username,
+		Password:     details.Password,
 	}
 }

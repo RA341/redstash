@@ -19,9 +19,12 @@ const (
 type PostStore interface {
 	Save(post *Post) error
 	SaveAll(post []Post) error
-	List(offset, limit int) ([]Post, error)
+
 	ListAll() ([]Post, error)
 	ListNonDownloaded(limit int, result *[]Post) error
+	ListDownloaded(offset, limit int, result *[]Post, accountID int) error
+	ListError(offset, limit int, result *[]Post, accountID int) error
+
 	ClearDownloadData() error
 }
 

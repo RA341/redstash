@@ -9,6 +9,22 @@ type GormPostStore struct {
 	db *gorm.DB
 }
 
+func (g *GormPostStore) ListError(offset, limit int, result *[]Post, accountID int) error {
+	return g.db.
+		Limit(limit).Offset(offset).
+		Where("user_credential_id = ?", accountID).
+		Where("error_data IS NOT NULL OR error_data != ?", "").
+		Find(result).Error
+}
+
+func (g *GormPostStore) ListDownloaded(offset, limit int, result *[]Post, accountID int) error {
+	return g.db.
+		Limit(limit).Offset(offset).
+		Where("user_credential_id = ?", accountID).
+		Where("download_data IS NOT NULL OR download_data != ?", "").
+		Find(result).Error
+}
+
 func NewGormPostStore(db *gorm.DB) PostStore {
 	return &GormPostStore{db: db}
 }

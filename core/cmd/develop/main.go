@@ -21,14 +21,8 @@ func main() {
 	prefixer := argos.Prefixer(config.EnvPrefix)
 
 	envMap := map[string]string{
-		//"AUTH_ENABLE":   "true",
-		"AUTH_USERNAME": "test",
-		"AUTH_PASSWORD": "test",
-		"LOG_LEVEL":     "debug",
-		"LOG_VERBOSE":   "true",
-		"CONFIG":        "./config",
-		"COMPOSE_ROOT":  "./compose",
-		"UPDATER_HOST":  "http://localhost:8869",
+		"LOG_LEVEL":                "debug",
+		"MAX_CONCURRENT_DOWNLOADS": "1",
 	}
 
 	for k, v := range envMap {

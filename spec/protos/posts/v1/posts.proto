@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package posts.v1;
+
+option go_package = "github.com/RA341/redstash/generated/posts/v1";
+
+service PostsService {
+  rpc ListDownloaded(ListDownloadedRequest) returns (ListDownloadedResponse) {}
+
+}
+
+message ListDownloadedRequest {
+  int32 userid = 1;
+  uint64 limit = 2;
+  uint64 offset = 3;
+}
+
+message ListDownloadedResponse {
+  repeated Post posts = 1;
+}
+
+message Gallery {
+  repeated string images = 1;
+}
+
+message Image {
+  string image = 1;
+}
+
+message Video {
+  repeated string video = 1;
+}
+
+message Post {
+  string title = 1;
+
+  string directLink = 2;
+  repeated string gallery = 3;
+}

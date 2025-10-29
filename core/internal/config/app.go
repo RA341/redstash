@@ -12,9 +12,11 @@ type AppConfig struct {
 	UIPath         string `config:"flag=ui,env=UI_PATH,default=dist,usage=Path to frontend files"`
 	ConfigDir      string `config:"flag=conf,env=CONFIG,default=/config,usage=Directory to store redstash config"`
 
-	Log        Logger     `config:""`
 	Downloader Downloader `config:""`
-	UIFS       fs.FS      // UIFS has no 'config' tag, so it will be ignored
+	Reddit     Reddit     `config:""`
+
+	Log  Logger `config:""`
+	UIFS fs.FS  // UIFS has no 'config' tag, so it will be ignored
 }
 
 func (c *AppConfig) GetAllowedOrigins() []string {
@@ -41,11 +43,12 @@ func (d Auth) GetCookieExpiryLimit() (time.Duration, error) {
 	return time.ParseDuration(d.CookieExpiry)
 }
 
-type RedditConfig struct {
+type Reddit struct {
+	CheckInterval string `config:"flag=redditCheck,env=REDDIT_POST_CHECK,default=15m,usage=Time to check for new saved posts"`
 }
 
 type Downloader struct {
-	CheckInterval          string `config:"flag=downCheck,env=DOWNLOADER_CHECK,default=1h,usage=Time to trigger the downloader"`
+	CheckInterval          string `config:"flag=downCheck,env=DOWNLOADER_CHECK,default=24h,usage=Time to trigger the downloader"`
 	MaxConcurrentDownloads int    `config:"flag=maxDownloads,env=MAX_CONCURRENT_DOWNLOADS,default=20,usage=Maximum concurrent download jobs"`
 	MaxQueueSize           int    `config:"flag=maxQueueSize,env=MAX_QUEUE_SIZE,default=50,usage=Maximum number of posts in queue"`
 	DownloadDir            string `config:"flag=down,env=DOWNLOAD_DIR,default=downloads,usage=Directory to store downloads"`

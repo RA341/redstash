@@ -245,7 +245,6 @@ func (s *ApiClient) savePostsToDB(result *SavedResponse) ([]Post, error) {
 
 	for _, p := range result.Data.Children {
 		var postItem Post
-
 		err := postItem.SetData(p.Data, s.cred)
 		if err != nil {
 			// todo continue on error

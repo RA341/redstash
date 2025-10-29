@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -45,12 +46,19 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 	)
 
 	redditManager := reddit.NewManagerService(
+		func() config.Reddit {
+			return conf.Reddit
+		},
 		managerStore,
 		postStore,
 		downloaderService.Task.Manual,
 	)
-	postSrv := posts.NewService(postStore, conf.Downloader.DownloadDir)
+	err := redditManager.LoadClients()
+	if err != nil {
+		return nil, fmt.Errorf("error occured while initilized client manager: %w", err)
+	}
 
+	postSrv := posts.NewService(postStore, conf.Downloader.DownloadDir)
 	// start any previous incomplete downloads
 	downloaderService.Task.Manual()
 

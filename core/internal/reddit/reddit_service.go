@@ -3,6 +3,7 @@ package reddit
 import (
 	"time"
 
+	"github.com/RA341/redstash/internal/config"
 	"github.com/RA341/redstash/pkg/schd"
 	"github.com/rs/zerolog/log"
 )
@@ -12,12 +13,7 @@ type ClientService struct {
 	cli  *ApiClient
 }
 
-func NewClientService(
-	cred *Credential,
-	limitStore PostLimitStore,
-	postStore PostStore,
-	triggerDownload func(),
-) *ClientService {
+func NewClientService(conf ConfigProvider, cred *Credential, limitStore PostLimitStore, postStore PostStore, triggerDownload func()) *ClientService {
 	cli := NewApiClient(
 		cred,
 		limitStore,
@@ -26,7 +22,7 @@ func NewClientService(
 	)
 
 	// todo get from config
-	checkInterval := 1 * time.Hour
+	interval := config.GetDurationOrDefault(15*time.Minute, conf().CheckInterval)
 	scd := schd.NewScheduler(
 		func() {
 			err := cli.GetAllSavedPosts()
@@ -34,7 +30,7 @@ func NewClientService(
 				log.Warn().Msg("error occurred while getting saved posts")
 			}
 		},
-		checkInterval,
+		interval,
 	)
 
 	return &ClientService{

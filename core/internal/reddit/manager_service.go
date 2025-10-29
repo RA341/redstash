@@ -3,6 +3,7 @@ package reddit
 import (
 	"fmt"
 
+	"github.com/RA341/redstash/internal/config"
 	"github.com/RA341/redstash/pkg/syncmap"
 	"github.com/rs/zerolog/log"
 )
@@ -14,23 +15,29 @@ type ManagerService struct {
 	// todo remove after some time and load on demand
 	clients         syncmap.Map[string, *ClientService]
 	triggerDownload func()
+	conf            ConfigProvider
 }
 
-func NewManagerService(store CredentialStore, postStore PostStore, triggerDownload func()) *ManagerService {
-	m := &ManagerService{
+type ConfigProvider func() config.Reddit
+
+func NewManagerService(
+	conf ConfigProvider,
+	store CredentialStore,
+	postStore PostStore,
+	triggerDownload func(),
+) *ManagerService {
+	return &ManagerService{
 		store:           store,
 		posts:           postStore,
 		triggerDownload: triggerDownload,
+		conf:            conf,
 	}
-	m.LoadClients()
-
-	return m
 }
 
-func (s *ManagerService) LoadClients() {
+func (s *ManagerService) LoadClients() error {
 	list, err := s.List()
 	if err != nil {
-		log.Warn().Err(err).Msg("Failed to list clients")
+		return fmt.Errorf("failed to list clients: %w", err)
 	}
 
 	for _, accountInfo := range list {
@@ -41,6 +48,7 @@ func (s *ManagerService) LoadClients() {
 		}
 
 		cli := NewClientService(
+			s.conf,
 			&accountInfo,
 			s.store,
 			s.posts,
@@ -50,6 +58,8 @@ func (s *ManagerService) LoadClients() {
 		s.clients.Store(accountInfo.Username, cli)
 		log.Info().Str("name", accountInfo.Username).Msg("Client loaded")
 	}
+
+	return nil
 }
 
 func (s *ManagerService) List() ([]Credential, error) {

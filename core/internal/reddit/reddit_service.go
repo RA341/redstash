@@ -8,8 +8,8 @@ import (
 )
 
 type ClientService struct {
-	scd *schd.Scheduler
-	cli *ApiClient
+	task *schd.Scheduler
+	cli  *ApiClient
 }
 
 func NewClientService(
@@ -18,7 +18,15 @@ func NewClientService(
 	postStore PostStore,
 	triggerDownload func(),
 ) *ClientService {
-	cli := NewApiClient(cred, limitStore, postStore, triggerDownload)
+	cli := NewApiClient(
+		cred,
+		limitStore,
+		postStore,
+		triggerDownload,
+	)
+
+	// todo get from config
+	checkInterval := 1 * time.Hour
 	scd := schd.NewScheduler(
 		func() {
 			err := cli.GetAllSavedPosts()
@@ -26,23 +34,11 @@ func NewClientService(
 				log.Warn().Msg("error occurred while getting saved posts")
 			}
 		},
-		6*time.Hour,
+		checkInterval,
 	)
 
 	return &ClientService{
-		cli: cli,
-		scd: scd,
+		cli:  cli,
+		task: scd,
 	}
-}
-
-func (s *ClientService) Trigger() {
-	s.scd.Manual()
-}
-
-func (s *ClientService) Start() {
-	s.scd.Start()
-}
-
-func (s *ClientService) Stop() {
-	s.scd.Stop()
 }

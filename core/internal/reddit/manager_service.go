@@ -11,6 +11,7 @@ type ManagerService struct {
 	store CredentialStore
 	posts PostStore
 
+	// todo remove after some time and load on demand
 	clients         syncmap.Map[string, *ClientService]
 	triggerDownload func()
 }
@@ -32,19 +33,22 @@ func (s *ManagerService) LoadClients() {
 		log.Warn().Err(err).Msg("Failed to list clients")
 	}
 
-	for _, l := range list {
-		_, ok := s.clients.Load(l.Username)
+	for _, accountInfo := range list {
+		_, ok := s.clients.Load(accountInfo.Username)
 		if ok {
-			log.Info().Str("name", l.Username).Msg("Client already loaded")
+			log.Info().Str("name", accountInfo.Username).Msg("Client already loaded")
 			continue
 		}
 
-		cli := NewClientService(&l, s.store, s.posts, s.triggerDownload)
-		cli.Start()
-		cli.Trigger()
+		cli := NewClientService(
+			&accountInfo,
+			s.store,
+			s.posts,
+			s.triggerDownload,
+		)
 
-		s.clients.Store(l.Username, cli)
-		log.Info().Str("name", l.Username).Msg("Client loaded")
+		s.clients.Store(accountInfo.Username, cli)
+		log.Info().Str("name", accountInfo.Username).Msg("Client loaded")
 	}
 }
 

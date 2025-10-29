@@ -1,9 +1,11 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
+	downrpc "github.com/RA341/redstash/generated/downloader/v1/v1connect"
 	postsrpc "github.com/RA341/redstash/generated/posts/v1/v1connect"
 	rmrpc "github.com/RA341/redstash/generated/reddit/v1/v1connect"
 	"github.com/RA341/redstash/internal/config"
@@ -26,6 +28,11 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 	managerStore := reddit.NewGormCredentialStore(db)
 	postStore := reddit.NewGormPostStore(db)
 
+	err := postStore.ClearDownloadData()
+	if err != nil {
+		return nil, fmt.Errorf("error clearing download data: %w", err)
+	}
+
 	// services
 	downloaderService := downloader.NewService(
 		conf.DownloadDir,
@@ -36,12 +43,12 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 	redditManager := reddit.NewManagerService(
 		managerStore,
 		postStore,
-		downloaderService.TriggerDownloader,
+		downloaderService.Task.Manual,
 	)
 	postSrv := posts.NewService(postStore, conf.DownloadDir)
 
 	// start any previous incomplete downloads
-	downloaderService.TriggerDownloader()
+	downloaderService.Task.Manual()
 
 	// api
 	//authInterceptor := connect.WithInterceptors()
@@ -58,6 +65,9 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 		},
 		func() (string, http.Handler) {
 			return registerHttpHandler("/api/posts", posts.NewHandlerHttp(postSrv))
+		},
+		func() (string, http.Handler) {
+			return downrpc.NewDownloaderServiceHandler(downloader.NewHandler(downloaderService))
 		},
 	}
 	for _, hand := range handlers {

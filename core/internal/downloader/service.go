@@ -1,12 +1,13 @@
 package downloader
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/RA341/redstash/internal/reddit"
+	"github.com/RA341/redstash/pkg/schd"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
@@ -22,7 +23,8 @@ type Service struct {
 	updatePost         UpdatePostFn
 
 	downloaderFnMap map[string]Downloader
-	triggerChan     chan interface{}
+	triggerChan     chan struct{}
+	Task            *schd.Scheduler
 }
 
 func NewService(downloadDir string, store reddit.PostStore, updatePost UpdatePostFn) *Service {
@@ -49,23 +51,17 @@ func NewService(downloadDir string, store reddit.PostStore, updatePost UpdatePos
 
 		updatePost:      updatePost,
 		downloaderFnMap: downloaderMap,
-		triggerChan:     make(chan interface{}, 1),
 	}
 
+	// todo move to config
+	downloadCheckInterval := time.Hour
+
+	s.Task = schd.NewScheduler(
+		s.StartDownloader,
+		downloadCheckInterval,
+	)
+
 	return s
-}
-
-func (s *Service) TriggerDownloader() {
-	go func() {
-		select {
-		case s.triggerChan <- struct{}{}:
-			s.StartDownloader()
-
-			_ = <-s.triggerChan
-		default:
-			log.Info().Msg("downloader is already running")
-		}
-	}()
 }
 
 func (s *Service) StartDownloader() {
@@ -108,6 +104,7 @@ func (s *Service) postProducer(postChannel chan *reddit.Post) error {
 			if err != nil {
 				return err
 			}
+			log.Debug().Int("posts", len(posts)).Msg("posts found")
 
 			for _, post := range posts {
 				if post.DownloadData != nil {
@@ -128,61 +125,61 @@ func (s *Service) postProducer(postChannel chan *reddit.Post) error {
 				log.Info().
 					Int("strike", strikes).Int("strikes left", strikeLimit-strikes).
 					Msg("strikes left before downloader stops")
-			} else {
-				// We got full results, reset strikes and continue pagination
-				strikes = 0
 			}
 		}
 	}
 }
 
 func (s *Service) deployWorkers(postChannel chan *reddit.Post) {
-	wg := sync.WaitGroup{}
+	workerSem := make(chan struct{}, s.maxDownloadWorkers)
 
-	for i := 0; i < s.maxDownloadWorkers; i++ {
-		subLogger := log.With().Int("worker", i+1).Logger()
-		wg.Go(func() {
-			s.worker(&subLogger, postChannel)
-		})
+	worker := func(post *reddit.Post) {
+		subLogger := log.With().Str("post", post.RedditId).Logger()
+
+		err := s.download(&subLogger, post)
+		if err != nil {
+			post.ErrorData = err.Error()
+		}
+
+		err = s.updatePost(post)
+		if err != nil {
+			subLogger.Err(err).Msg("failed to update post")
+		}
+
+		<-workerSem // release
 	}
 
-	wg.Wait()
-}
-
-func (s *Service) worker(log *zerolog.Logger, postChannel chan *reddit.Post) {
 	for {
 		select {
-		case item, ok := <-postChannel:
+		case post, ok := <-postChannel:
 			if !ok {
-				log.Debug().Msg("post channel closed, exiting worker")
+				log.Debug().Msg("Post Consumer: post channel closed")
 				return
 			}
-			s.download(log, item)
+			workerSem <- struct{}{} // acquire
+			go worker(post)
 		}
 	}
 }
 
-func (s *Service) download(log *zerolog.Logger, post *reddit.Post) {
+func (s *Service) download(log *zerolog.Logger, post *reddit.Post) error {
+	log.Info().Msg("Downloading post")
+
 	baseFolder := filepath.Join(s.downloadDir, post.RedditId)
 	err := os.MkdirAll(baseFolder, 0755)
 	if err != nil {
-		log.Warn().Str("filepath", baseFolder).Msg("unable to create download directory")
-		return
+		return fmt.Errorf("unable to create download directory at %s, err: %w", baseFolder, err)
 	}
 
 	downloadFn, ok := s.downloaderFnMap[string(post.MediaType)]
 	if !ok {
-		log.Warn().Str("type", string(post.MediaType)).Msg("Unsupported media type")
-		return
+		return fmt.Errorf("unsupported media type %s", string(post.MediaType))
 	}
 
 	err = downloadFn(post, baseFolder)
 	if err != nil {
-		post.ErrorData = err.Error()
+		return fmt.Errorf("error occured while downloading %w", err)
 	}
 
-	err = s.updatePost(post)
-	if err != nil {
-		log.Error().Err(err).Msg("unable to update post")
-	}
+	return nil
 }

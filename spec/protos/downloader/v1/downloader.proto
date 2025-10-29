@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package downloader.v1;
+
+option go_package = "github.com/RA341/redstash/generated/downloader/v1";
+
+service DownloaderService {
+  rpc TriggerDownloader(TriggerDownloaderRequest) returns (TriggerDownloaderResponse) {}
+}
+
+message TriggerDownloaderRequest {}
+
+message TriggerDownloaderResponse {}
+

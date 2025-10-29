@@ -12,18 +12,21 @@ type Scheduler struct {
 	task     Task
 	interval time.Duration
 	// used to send cancel task loop
-	cancelChan chan interface{}
+	cancelChan chan struct{}
 	// used to initiate task
-	manualChan chan interface{}
+	manualChan chan struct{}
 }
 
+// NewScheduler task is expected to be a long-running function that will run in a go routine
 func NewScheduler(task Task, interval time.Duration) *Scheduler {
-	return &Scheduler{
+	s := &Scheduler{
 		task:       task,
 		interval:   interval,
-		cancelChan: make(chan interface{}, 1),
-		manualChan: make(chan interface{}, 1),
+		cancelChan: make(chan struct{}, 1),
+		manualChan: make(chan struct{}, 1),
 	}
+	go s.loop()
+	return s
 }
 
 // Manual Trigger the task manually

@@ -17,20 +17,14 @@ permissions:
   contents: write
   packages: write
 
-env:
-  TITLE: redstash
-  DOCKERFILE: Dockerfile
-  VERSION_TAG: v1.0.0
-  source_branch: main
-
 jobs:
   build-amd64:
     uses: ./.github/workflows/action-docker.yml
     with:
-      title: ${{ env.TITLE }}
-      dockerfile: ${{ env.DOCKERFILE }}
-      version_tag: ${{ env.VERSION_TAG }}
-      source_branch: ${{ env.SOURCE_BRANCH }}
+      title: redstash
+      dockerfile: Dockerfile
+      version_tag: canary
+      source_branch: main
       platform: linux/amd64
       arch_suffix: amd64
       machine: ubuntu-latest
@@ -38,20 +32,20 @@ jobs:
   build-arm64:
     uses: ./.github/workflows/action-docker.yml
     with:
-      title: ${{ env.TITLE }}
-      dockerfile: ${{ env.DOCKERFILE }}
-      version_tag: ${{ env.VERSION_TAG }}
-      source_branch: ${{ env.SOURCE_BRANCH }}
+      title: redstash
+      dockerfile: Dockerfile
+      version_tag: canary
+      source_branch: main
       platform: linux/arm64
       arch_suffix: arm64
       machine: ubuntu-24.04-arm
 
   combine:
     uses: ./.github/workflows/action-docker-combine.yml
-    needs: [ build-amd64, build-arm64 ]
+    needs: [build-amd64, build-arm64]
     with:
-      title: ${{ env.TITLE }}
-      version_tag: ${{ env.VERSION_TAG }}
+      title: redstash
+      version_tag: canary
       is_latest: true
       build_amd64: true
       build_arm64: true

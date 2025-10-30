@@ -18,19 +18,19 @@ permissions:
   packages: write
 
 env:
-  title: redstash
-  dockerfile: Dockerfile
-  version_tag: v1.0.0
+  TITLE: redstash
+  DOCKERFILE: Dockerfile
+  VERSION_TAG: v1.0.0
   source_branch: main
 
 jobs:
   build-amd64:
     uses: ./.github/workflows/action-docker.yml
     with:
-      title: ${{env.title}}
-      dockerfile: ${{env.dockerfile}}
-      version_tag: ${{env.version_tag}}
-      source_branch: ${{env.source_branch}}
+      title: ${{ env.TITLE }}
+      dockerfile: ${{ env.DOCKERFILE }}
+      version_tag: ${{ env.VERSION_TAG }}
+      source_branch: ${{ env.SOURCE_BRANCH }}
       platform: linux/amd64
       arch_suffix: amd64
       machine: ubuntu-latest
@@ -38,10 +38,10 @@ jobs:
   build-arm64:
     uses: ./.github/workflows/action-docker.yml
     with:
-      title: ${{env.title}}
-      dockerfile: ${{env.dockerfile}}
-      version_tag: ${{env.version_tag}}
-      source_branch: ${{env.source_branch}}
+      title: ${{ env.TITLE }}
+      dockerfile: ${{ env.DOCKERFILE }}
+      version_tag: ${{ env.VERSION_TAG }}
+      source_branch: ${{ env.SOURCE_BRANCH }}
       platform: linux/arm64
       arch_suffix: arm64
       machine: ubuntu-24.04-arm
@@ -50,8 +50,8 @@ jobs:
     uses: ./.github/workflows/action-docker-combine.yml
     needs: [ build-amd64, build-arm64 ]
     with:
-      title: ${{env.title}}
-      version_tag: ${{env.version_tag}}
+      title: ${{ env.TITLE }}
+      version_tag: ${{ env.VERSION_TAG }}
       is_latest: true
       build_amd64: true
       build_arm64: true

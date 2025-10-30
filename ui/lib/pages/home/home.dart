@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:redstash/gen/downloader/v1/downloader.pb.dart';
+import 'package:redstash/gen/reddit/v1/reddit.pb.dart';
+import 'package:redstash/grpc/api.dart';
 import 'package:redstash/pages/home/add_account.dart';
 import 'package:redstash/pages/home/post_list.dart';
 import 'package:redstash/providers/account.dart';
 import 'package:redstash/providers/credentials.dart';
+import 'package:redstash/providers/downloader.dart';
+import 'package:redstash/providers/posts.dart';
 import 'package:redstash/utils/async_button.dart';
 import 'package:redstash/utils/error_display.dart';
 import 'package:redstash/utils/loading_widget.dart';
@@ -50,6 +55,45 @@ class HomePage extends ConsumerWidget {
                 );
               },
               icon: Icon(Icons.add),
+            ),
+          ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          onTap: (value) async {
+            String? err;
+
+            if (value == 0) {
+              err = await runGrpcRequestErr(
+                () => ref
+                    .read(downloadApiProvider)
+                    .triggerDownloader(TriggerDownloaderRequest()),
+              );
+            } else if (value == 1) {
+              err = await runGrpcRequestErr(
+                () => ref
+                    .read(credentialsApiProvider)
+                    .syncPosts(RunTaskRequest()),
+              );
+            }
+
+            if (!context.mounted) return;
+
+            if (err != null) {
+              await showErrorDialog(
+                context: context,
+                title: "Error running task",
+                error: err,
+              );
+            }
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.download),
+              label: "Sync downloads",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.post_add),
+              label: "Sync posts",
             ),
           ],
         ),

@@ -33,6 +33,12 @@ func NewManagerService(
 		conf:            conf,
 	}
 }
+func (s *ManagerService) TriggerDownload() {
+	s.clients.Range(func(key string, value *ClientService) bool {
+		value.task.Manual()
+		return true
+	})
+}
 
 func (s *ManagerService) LoadClients() error {
 	list, err := s.List()

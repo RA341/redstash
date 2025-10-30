@@ -31,8 +31,8 @@ abstract final class RedditService {
     redditv1reddit.ListAccountResponse.new,
   );
 
-  static const runTask = connect.Spec(
-    '/$name/RunTask',
+  static const syncPosts = connect.Spec(
+    '/$name/SyncPosts',
     connect.StreamType.unary,
     redditv1reddit.RunTaskRequest.new,
     redditv1reddit.RunTaskResponse.new,

@@ -42,8 +42,8 @@ const (
 	// RedditServiceListAccountProcedure is the fully-qualified name of the RedditService's ListAccount
 	// RPC.
 	RedditServiceListAccountProcedure = "/reddit.v1.RedditService/ListAccount"
-	// RedditServiceRunTaskProcedure is the fully-qualified name of the RedditService's RunTask RPC.
-	RedditServiceRunTaskProcedure = "/reddit.v1.RedditService/RunTask"
+	// RedditServiceSyncPostsProcedure is the fully-qualified name of the RedditService's SyncPosts RPC.
+	RedditServiceSyncPostsProcedure = "/reddit.v1.RedditService/SyncPosts"
 )
 
 // RedditServiceClient is a client for the reddit.v1.RedditService service.
@@ -51,7 +51,7 @@ type RedditServiceClient interface {
 	AddAccount(context.Context, *connect.Request[v1.AddAccountRequest]) (*connect.Response[v1.AddAccountResponse], error)
 	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
 	ListAccount(context.Context, *connect.Request[v1.ListAccountRequest]) (*connect.Response[v1.ListAccountResponse], error)
-	RunTask(context.Context, *connect.Request[v1.RunTaskRequest]) (*connect.Response[v1.RunTaskResponse], error)
+	SyncPosts(context.Context, *connect.Request[v1.RunTaskRequest]) (*connect.Response[v1.RunTaskResponse], error)
 }
 
 // NewRedditServiceClient constructs a client for the reddit.v1.RedditService service. By default,
@@ -83,10 +83,10 @@ func NewRedditServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(redditServiceMethods.ByName("ListAccount")),
 			connect.WithClientOptions(opts...),
 		),
-		runTask: connect.NewClient[v1.RunTaskRequest, v1.RunTaskResponse](
+		syncPosts: connect.NewClient[v1.RunTaskRequest, v1.RunTaskResponse](
 			httpClient,
-			baseURL+RedditServiceRunTaskProcedure,
-			connect.WithSchema(redditServiceMethods.ByName("RunTask")),
+			baseURL+RedditServiceSyncPostsProcedure,
+			connect.WithSchema(redditServiceMethods.ByName("SyncPosts")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -97,7 +97,7 @@ type redditServiceClient struct {
 	addAccount    *connect.Client[v1.AddAccountRequest, v1.AddAccountResponse]
 	deleteAccount *connect.Client[v1.DeleteAccountRequest, v1.DeleteAccountResponse]
 	listAccount   *connect.Client[v1.ListAccountRequest, v1.ListAccountResponse]
-	runTask       *connect.Client[v1.RunTaskRequest, v1.RunTaskResponse]
+	syncPosts     *connect.Client[v1.RunTaskRequest, v1.RunTaskResponse]
 }
 
 // AddAccount calls reddit.v1.RedditService.AddAccount.
@@ -115,9 +115,9 @@ func (c *redditServiceClient) ListAccount(ctx context.Context, req *connect.Requ
 	return c.listAccount.CallUnary(ctx, req)
 }
 
-// RunTask calls reddit.v1.RedditService.RunTask.
-func (c *redditServiceClient) RunTask(ctx context.Context, req *connect.Request[v1.RunTaskRequest]) (*connect.Response[v1.RunTaskResponse], error) {
-	return c.runTask.CallUnary(ctx, req)
+// SyncPosts calls reddit.v1.RedditService.SyncPosts.
+func (c *redditServiceClient) SyncPosts(ctx context.Context, req *connect.Request[v1.RunTaskRequest]) (*connect.Response[v1.RunTaskResponse], error) {
+	return c.syncPosts.CallUnary(ctx, req)
 }
 
 // RedditServiceHandler is an implementation of the reddit.v1.RedditService service.
@@ -125,7 +125,7 @@ type RedditServiceHandler interface {
 	AddAccount(context.Context, *connect.Request[v1.AddAccountRequest]) (*connect.Response[v1.AddAccountResponse], error)
 	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
 	ListAccount(context.Context, *connect.Request[v1.ListAccountRequest]) (*connect.Response[v1.ListAccountResponse], error)
-	RunTask(context.Context, *connect.Request[v1.RunTaskRequest]) (*connect.Response[v1.RunTaskResponse], error)
+	SyncPosts(context.Context, *connect.Request[v1.RunTaskRequest]) (*connect.Response[v1.RunTaskResponse], error)
 }
 
 // NewRedditServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -153,10 +153,10 @@ func NewRedditServiceHandler(svc RedditServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(redditServiceMethods.ByName("ListAccount")),
 		connect.WithHandlerOptions(opts...),
 	)
-	redditServiceRunTaskHandler := connect.NewUnaryHandler(
-		RedditServiceRunTaskProcedure,
-		svc.RunTask,
-		connect.WithSchema(redditServiceMethods.ByName("RunTask")),
+	redditServiceSyncPostsHandler := connect.NewUnaryHandler(
+		RedditServiceSyncPostsProcedure,
+		svc.SyncPosts,
+		connect.WithSchema(redditServiceMethods.ByName("SyncPosts")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/reddit.v1.RedditService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -167,8 +167,8 @@ func NewRedditServiceHandler(svc RedditServiceHandler, opts ...connect.HandlerOp
 			redditServiceDeleteAccountHandler.ServeHTTP(w, r)
 		case RedditServiceListAccountProcedure:
 			redditServiceListAccountHandler.ServeHTTP(w, r)
-		case RedditServiceRunTaskProcedure:
-			redditServiceRunTaskHandler.ServeHTTP(w, r)
+		case RedditServiceSyncPostsProcedure:
+			redditServiceSyncPostsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -190,6 +190,6 @@ func (UnimplementedRedditServiceHandler) ListAccount(context.Context, *connect.R
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("reddit.v1.RedditService.ListAccount is not implemented"))
 }
 
-func (UnimplementedRedditServiceHandler) RunTask(context.Context, *connect.Request[v1.RunTaskRequest]) (*connect.Response[v1.RunTaskResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("reddit.v1.RedditService.RunTask is not implemented"))
+func (UnimplementedRedditServiceHandler) SyncPosts(context.Context, *connect.Request[v1.RunTaskRequest]) (*connect.Response[v1.RunTaskResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("reddit.v1.RedditService.SyncPosts is not implemented"))
 }

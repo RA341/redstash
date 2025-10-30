@@ -195,7 +195,7 @@ const $core.Map<$core.String, $core.dynamic> RedditServiceBase$json = {
       '4': {}
     },
     {
-      '1': 'RunTask',
+      '1': 'SyncPosts',
       '2': '.reddit.v1.RunTaskRequest',
       '3': '.reddit.v1.RunTaskResponse',
       '4': {}
@@ -224,5 +224,5 @@ final $typed_data.Uint8List redditServiceDescriptor = $convert.base64Decode(
     'Vlc3QaHS5yZWRkaXQudjEuQWRkQWNjb3VudFJlc3BvbnNlIgASVAoNRGVsZXRlQWNjb3VudBIf'
     'LnJlZGRpdC52MS5EZWxldGVBY2NvdW50UmVxdWVzdBogLnJlZGRpdC52MS5EZWxldGVBY2NvdW'
     '50UmVzcG9uc2UiABJOCgtMaXN0QWNjb3VudBIdLnJlZGRpdC52MS5MaXN0QWNjb3VudFJlcXVl'
-    'c3QaHi5yZWRkaXQudjEuTGlzdEFjY291bnRSZXNwb25zZSIAEkIKB1J1blRhc2sSGS5yZWRkaX'
-    'QudjEuUnVuVGFza1JlcXVlc3QaGi5yZWRkaXQudjEuUnVuVGFza1Jlc3BvbnNlIgA=');
+    'c3QaHi5yZWRkaXQudjEuTGlzdEFjY291bnRSZXNwb25zZSIAEkQKCVN5bmNQb3N0cxIZLnJlZG'
+    'RpdC52MS5SdW5UYXNrUmVxdWVzdBoaLnJlZGRpdC52MS5SdW5UYXNrUmVzcG9uc2UiAA==');

@@ -687,10 +687,10 @@ class RedditServiceApi {
           $pb.ClientContext? ctx, ListAccountRequest request) =>
       _client.invoke<ListAccountResponse>(
           ctx, 'RedditService', 'ListAccount', request, ListAccountResponse());
-  $async.Future<RunTaskResponse> runTask(
+  $async.Future<RunTaskResponse> syncPosts(
           $pb.ClientContext? ctx, RunTaskRequest request) =>
       _client.invoke<RunTaskResponse>(
-          ctx, 'RedditService', 'RunTask', request, RunTaskResponse());
+          ctx, 'RedditService', 'SyncPosts', request, RunTaskResponse());
 }
 
 const $core.bool _omitFieldNames =

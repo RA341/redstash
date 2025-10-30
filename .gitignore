@@ -26,3 +26,4 @@ install/stacks/
 /core/internal/git/test/
 .dev/
 /core/internal/**/*.json
+*.jks*

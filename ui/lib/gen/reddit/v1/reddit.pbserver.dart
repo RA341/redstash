@@ -27,7 +27,7 @@ abstract class RedditServiceBase extends $pb.GeneratedService {
       $pb.ServerContext ctx, $0.DeleteAccountRequest request);
   $async.Future<$0.ListAccountResponse> listAccount(
       $pb.ServerContext ctx, $0.ListAccountRequest request);
-  $async.Future<$0.RunTaskResponse> runTask(
+  $async.Future<$0.RunTaskResponse> syncPosts(
       $pb.ServerContext ctx, $0.RunTaskRequest request);
 
   $pb.GeneratedMessage createRequest($core.String methodName) {
@@ -38,7 +38,7 @@ abstract class RedditServiceBase extends $pb.GeneratedService {
         return $0.DeleteAccountRequest();
       case 'ListAccount':
         return $0.ListAccountRequest();
-      case 'RunTask':
+      case 'SyncPosts':
         return $0.RunTaskRequest();
       default:
         throw $core.ArgumentError('Unknown method: $methodName');
@@ -54,8 +54,8 @@ abstract class RedditServiceBase extends $pb.GeneratedService {
         return deleteAccount(ctx, request as $0.DeleteAccountRequest);
       case 'ListAccount':
         return listAccount(ctx, request as $0.ListAccountRequest);
-      case 'RunTask':
-        return runTask(ctx, request as $0.RunTaskRequest);
+      case 'SyncPosts':
+        return syncPosts(ctx, request as $0.RunTaskRequest);
       default:
         throw $core.ArgumentError('Unknown method: $methodName');
     }

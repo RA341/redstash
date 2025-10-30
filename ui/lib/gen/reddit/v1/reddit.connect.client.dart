@@ -59,7 +59,7 @@ extension type RedditServiceClient (connect.Transport _transport) {
     );
   }
 
-  Future<redditv1reddit.RunTaskResponse> runTask(
+  Future<redditv1reddit.RunTaskResponse> syncPosts(
     redditv1reddit.RunTaskRequest input, {
     connect.Headers? headers,
     connect.AbortSignal? signal,
@@ -67,7 +67,7 @@ extension type RedditServiceClient (connect.Transport _transport) {
     Function(connect.Headers)? onTrailer,
   }) {
     return connect.Client(_transport).unary(
-      specs.RedditService.runTask,
+      specs.RedditService.syncPosts,
       input,
       signal: signal,
       headers: headers,

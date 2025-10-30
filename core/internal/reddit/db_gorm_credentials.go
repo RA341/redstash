@@ -44,7 +44,7 @@ func (g *GormCredentialStore) updateBefore(before, username string) error {
 
 func (g *GormCredentialStore) List() ([]Credential, error) {
 	var credentials []Credential
-	result := g.db.Debug().Model(&Credential{}).Find(&credentials)
+	result := g.db.Model(&Credential{}).Find(&credentials)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to list credentials: %w", result.Error)
 	}

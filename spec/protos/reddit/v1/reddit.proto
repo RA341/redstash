@@ -9,7 +9,7 @@ service RedditService {
   rpc DeleteAccount(DeleteAccountRequest) returns (DeleteAccountResponse) {}
   rpc ListAccount(ListAccountRequest) returns (ListAccountResponse) {}
 
-  rpc RunTask(RunTaskRequest) returns (RunTaskResponse) {}
+  rpc SyncPosts(RunTaskRequest) returns (RunTaskResponse) {}
 }
 
 message RunTaskRequest {

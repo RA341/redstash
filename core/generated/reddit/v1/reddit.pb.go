@@ -579,13 +579,13 @@ const file_reddit_v1_reddit_proto_rawDesc = "" +
 	"\bPassword\x18\x04 \x01(\tR\bPassword\"\x14\n" +
 	"\x12AddAccountResponse\"\r\n" +
 	"\vTestRequest\"\x0e\n" +
-	"\fTestResponse2\xc6\x02\n" +
+	"\fTestResponse2\xc8\x02\n" +
 	"\rRedditService\x12K\n" +
 	"\n" +
 	"AddAccount\x12\x1c.reddit.v1.AddAccountRequest\x1a\x1d.reddit.v1.AddAccountResponse\"\x00\x12T\n" +
 	"\rDeleteAccount\x12\x1f.reddit.v1.DeleteAccountRequest\x1a .reddit.v1.DeleteAccountResponse\"\x00\x12N\n" +
-	"\vListAccount\x12\x1d.reddit.v1.ListAccountRequest\x1a\x1e.reddit.v1.ListAccountResponse\"\x00\x12B\n" +
-	"\aRunTask\x12\x19.reddit.v1.RunTaskRequest\x1a\x1a.reddit.v1.RunTaskResponse\"\x00B\x90\x01\n" +
+	"\vListAccount\x12\x1d.reddit.v1.ListAccountRequest\x1a\x1e.reddit.v1.ListAccountResponse\"\x00\x12D\n" +
+	"\tSyncPosts\x12\x19.reddit.v1.RunTaskRequest\x1a\x1a.reddit.v1.RunTaskResponse\"\x00B\x90\x01\n" +
 	"\rcom.reddit.v1B\vRedditProtoP\x01Z-github.com/RA341/redstash/generated/reddit/v1\xa2\x02\x03RXX\xaa\x02\tReddit.V1\xca\x02\tReddit\\V1\xe2\x02\x15Reddit\\V1\\GPBMetadata\xea\x02\n" +
 	"Reddit::V1b\x06proto3"
 
@@ -623,11 +623,11 @@ var file_reddit_v1_reddit_proto_depIdxs = []int32{
 	7, // 3: reddit.v1.RedditService.AddAccount:input_type -> reddit.v1.AddAccountRequest
 	5, // 4: reddit.v1.RedditService.DeleteAccount:input_type -> reddit.v1.DeleteAccountRequest
 	2, // 5: reddit.v1.RedditService.ListAccount:input_type -> reddit.v1.ListAccountRequest
-	0, // 6: reddit.v1.RedditService.RunTask:input_type -> reddit.v1.RunTaskRequest
+	0, // 6: reddit.v1.RedditService.SyncPosts:input_type -> reddit.v1.RunTaskRequest
 	9, // 7: reddit.v1.RedditService.AddAccount:output_type -> reddit.v1.AddAccountResponse
 	6, // 8: reddit.v1.RedditService.DeleteAccount:output_type -> reddit.v1.DeleteAccountResponse
 	4, // 9: reddit.v1.RedditService.ListAccount:output_type -> reddit.v1.ListAccountResponse
-	1, // 10: reddit.v1.RedditService.RunTask:output_type -> reddit.v1.RunTaskResponse
+	1, // 10: reddit.v1.RedditService.SyncPosts:output_type -> reddit.v1.RunTaskResponse
 	7, // [7:11] is the sub-list for method output_type
 	3, // [3:7] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name

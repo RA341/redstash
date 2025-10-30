@@ -3,7 +3,6 @@ package posts
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	connect "connectrpc.com/connect"
 	v1 "github.com/RA341/redstash/generated/posts/v1"
@@ -52,14 +51,11 @@ func (h *Handler) ListDownloaded(ctx context.Context, c *connect.Request[v1.List
 		case reddit.Gallery:
 			var img downloader.Gallery
 
-			err := json.Unmarshal(post.DownloadData, &img)
+			err = json.Unmarshal(post.DownloadData, &img)
 			if err != nil {
 				log.Warn().Err(err).Msg("failed to unmarshal gallery")
 				break
 			}
-
-			sd := title
-			fmt.Println(sd)
 
 			var galRes []string
 			for _, g := range img.ImgList {
@@ -68,9 +64,6 @@ func (h *Handler) ListDownloaded(ctx context.Context, c *connect.Request[v1.List
 			resItem.Gallery = galRes
 		case reddit.Image, reddit.Video:
 			var img downloader.Image
-
-			sd := title
-			fmt.Println(sd)
 
 			err = json.Unmarshal(post.DownloadData, &img)
 			if err != nil {

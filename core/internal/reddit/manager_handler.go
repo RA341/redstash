@@ -2,7 +2,6 @@ package reddit
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	v1 "github.com/RA341/redstash/generated/reddit/v1"
@@ -60,8 +59,9 @@ func (h *Handler) ListAccount(context.Context, *connect.Request[v1.ListAccountRe
 	return connect.NewResponse(&v1.ListAccountResponse{Cred: ls}), nil
 }
 
-func (h *Handler) RunTask(ctx context.Context, req *connect.Request[v1.RunTaskRequest]) (*connect.Response[v1.RunTaskResponse], error) {
-	return nil, fmt.Errorf("RunTask: implement me dumbass")
+func (h *Handler) SyncPosts(context.Context, *connect.Request[v1.RunTaskRequest]) (*connect.Response[v1.RunTaskResponse], error) {
+	h.srv.TriggerDownload()
+	return connect.NewResponse(&v1.RunTaskResponse{}), nil
 }
 
 func CredFromRPC(msg *v1.AddAccountRequest) Credential {

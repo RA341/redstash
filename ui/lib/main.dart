@@ -8,8 +8,11 @@ import 'package:media_kit/media_kit.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:redstash/config/config.dart';
+import 'package:redstash/grpc/api.dart';
 import 'package:redstash/pages/auth/auth.dart';
 import 'package:redstash/pages/home/home.dart';
+import 'package:redstash/utils/error_display.dart';
+import 'package:redstash/utils/loading_widget.dart';
 
 import 'config/service.dart';
 
@@ -48,13 +51,34 @@ class Root extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final basepath = ref.watch(localSettingsProvider).basepath;
+    final basepath = ref.watch(checkBasepathProvider);
 
-    if (basepath.isEmpty) return AuthPage();
-
-    return HomePage();
+    return basepath.when(
+      data: (isValid) {
+        if (isValid) {
+          return HomePage();
+        }
+        return AuthPage();
+      },
+      error: (error, stackTrace) => Scaffold(
+        body: ErrorDisplay(
+          title: "Unable to verify server url",
+          error: error.toString(),
+          stacktrace: stackTrace.toString(),
+        ),
+      ),
+      loading: () => Scaffold(
+        body: LoadingSpinner(loadingMessage: "Verifying with server"),
+      ),
+    );
   }
 }
+
+final checkBasepathProvider = FutureProvider<bool>((ref) async {
+  final basepath = ref.watch(localSettingsProvider).basepath;
+  if (basepath.isEmpty) return false;
+  return checkServerUrl(basepath);
+});
 
 void getPermissions() {
   // if (!kIsWeb && Platform.isAndroid) {

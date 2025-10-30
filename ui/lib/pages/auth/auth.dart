@@ -8,7 +8,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:redstash/config/config.dart';
 import 'package:redstash/config/logger.dart';
-import 'package:redstash/grpc/api.dart';
 import 'package:redstash/utils/async_button.dart';
 import 'package:redstash/utils/error_display.dart';
 

@@ -67,44 +67,55 @@ class HomePage extends ConsumerWidget {
             ),
           ],
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          onTap: (value) async {
-            String? err;
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              AsyncButton(
+                loadingButton: Text("Syncing posts"),
+                normalButton: Text("Sync posts"),
+                icon: Icon(Icons.post_add, size: 25),
+                onPress: () async {
+                  final err = await runGrpcRequestErr(
+                    () => ref
+                        .read(credentialsApiProvider)
+                        .syncPosts(RunTaskRequest()),
+                  );
 
-            if (value == 0) {
-              err = await runGrpcRequestErr(
-                () => ref
-                    .read(downloadApiProvider)
-                    .triggerDownloader(TriggerDownloaderRequest()),
-              );
-            } else if (value == 1) {
-              err = await runGrpcRequestErr(
-                () => ref
-                    .read(credentialsApiProvider)
-                    .syncPosts(RunTaskRequest()),
-              );
-            }
+                  if (!context.mounted) return;
+                  if (err != null) {
+                    await showErrorDialog(
+                      context: context,
+                      title: "Error running task",
+                      error: err,
+                    );
+                  }
+                },
+              ),
+              AsyncButton(
+                loadingButton: Text("Syncing downloads"),
+                normalButton: Text("Sync downloads"),
+                icon: Icon(Icons.post_add, size: 25),
+                onPress: () async {
+                  final err = await runGrpcRequestErr(
+                    () => ref
+                        .read(downloadApiProvider)
+                        .triggerDownloader(TriggerDownloaderRequest()),
+                  );
 
-            if (!context.mounted) return;
-
-            if (err != null) {
-              await showErrorDialog(
-                context: context,
-                title: "Error running task",
-                error: err,
-              );
-            }
-          },
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.download),
-              label: "Sync downloads",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.post_add),
-              label: "Sync posts",
-            ),
-          ],
+                  if (!context.mounted) return;
+                  if (err != null) {
+                    await showErrorDialog(
+                      context: context,
+                      title: "Error running task",
+                      error: err,
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
         ),
         body: RefreshIndicator(
           onRefresh: () async {

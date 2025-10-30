@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:redstash/config/logger.dart';
 import 'package:redstash/gen/reddit/v1/reddit.pb.dart';
 import 'package:redstash/grpc/api.dart';
 import 'package:redstash/pages/home/home.dart';
@@ -127,6 +128,37 @@ class AddAccountWidget extends HookConsumerWidget {
                             isAdding.value = false;
                           },
                     child: Text(isAdding.value ? "Adding" : "Add"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          content: TextField(
+                            onChanged: (value) {
+                              try {
+                                final rea = FullCredentials.fromJson(value);
+                                username.text = rea.account.username;
+                                password.text = rea.account.password;
+                                appID.text = rea.account.clientID;
+                                appSecret.text = rea.account.clientSecret;
+                              } catch (e) {
+                                logger.e(e);
+                              }
+                            },
+                          ),
+                          actions: [
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text("Close"),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Text("Import"),
                   ),
                   Divider(),
                   CredentialList(),

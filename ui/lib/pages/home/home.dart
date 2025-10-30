@@ -5,6 +5,9 @@ import 'package:redstash/pages/home/add_account.dart';
 import 'package:redstash/pages/home/post_list.dart';
 import 'package:redstash/providers/account.dart';
 import 'package:redstash/providers/credentials.dart';
+import 'package:redstash/utils/async_button.dart';
+import 'package:redstash/utils/error_display.dart';
+import 'package:redstash/utils/loading_widget.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -14,52 +17,52 @@ class HomePage extends ConsumerWidget {
     final accountList = ref.watch(credentialListProvider);
 
     return accountList.when(
-      data: (accounts) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text("Redstash home", style: TextStyle(fontSize: 20)),
-            actions: [
-              DropdownMenu<int?>(
-                initialSelection: ref.watch(activeAccountProvider),
-                onSelected: ref.activeAccount.switchAccount,
-                dropdownMenuEntries: accounts
+      data: (accounts) => Scaffold(
+        appBar: AppBar(
+          title: Text("Redstash", style: TextStyle(fontSize: 20)),
+          elevation: 10,
+          actionsPadding: EdgeInsets.symmetric(horizontal: 10),
+          actions: [
+            SizedBox(
+              width: 170,
+              child: DropdownButton<int?>(
+                underline: Container(),
+                padding: EdgeInsets.all(10),
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+                value: ref.watch(activeAccountProvider),
+                items: accounts
                     .map(
-                      (e) => DropdownMenuEntry(
+                      (e) => DropdownMenuItem(
                         value: e.accountID,
-                        label: e.account.username,
+                        child: Text(e.account.username),
                       ),
                     )
                     .toList(),
+                onChanged: ref.activeAccount.switchAccount,
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  await showDialog(
-                    context: context,
-                    builder: (context) => AddAccountWidget(),
-                  );
-                },
-                child: Text("Add"),
-              ),
-            ],
-          ),
-          body: PostList(),
-        );
-      },
-      error: (error, stackTrace) {
-        // todo refactor and make a nice shared error view
-        return Center(
-          child: Column(
-            children: [
-              Text("Error getting accounts"),
-              Text(error.toString()),
-              Text(error.toString()),
-            ],
-          ),
-        );
-      },
-      loading: () {
-        return Center(child: CircularProgressIndicator());
-      },
+            ),
+            SizedBox(width: 10),
+            IconButton(
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) => AddAccountWidget(),
+                );
+              },
+              icon: Icon(Icons.add),
+            ),
+          ],
+        ),
+        body: PostList(),
+      ),
+      error: (error, stackTrace) => Scaffold(
+        body: ErrorDisplay(
+          title: "Error getting accounts",
+          error: error.toString(),
+          stacktrace: stackTrace.toString(),
+        ),
+      ),
+      loading: () => Scaffold(body: LoadingSpinner()),
     );
   }
 }

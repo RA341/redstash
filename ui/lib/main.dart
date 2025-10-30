@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,32 +15,6 @@ import 'config/service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (Platform.isAndroid) {
-    // Video permissions.
-    if (await Permission.videos.isDenied ||
-        await Permission.videos.isPermanentlyDenied) {
-      final state = await Permission.videos.request();
-      if (!state.isGranted) {
-        await SystemNavigator.pop();
-      }
-    }
-    // Audio permissions.
-    if (await Permission.audio.isDenied ||
-        await Permission.audio.isPermanentlyDenied) {
-      final state = await Permission.audio.request();
-      if (!state.isGranted) {
-        await SystemNavigator.pop();
-      }
-    }
-  } else {
-    if (await Permission.storage.isDenied ||
-        await Permission.storage.isPermanentlyDenied) {
-      final state = await Permission.storage.request();
-      if (!state.isGranted) {
-        await SystemNavigator.pop();
-      }
-    }
-  }
 
   MediaKit.ensureInitialized();
 
@@ -55,7 +30,7 @@ class AppRoot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Redstash Client',
+      title: 'Redstash',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -63,7 +38,7 @@ class AppRoot extends StatelessWidget {
           brightness: Brightness.dark,
         ),
       ),
-      home: const Root(),
+      home: const SafeArea(child: Root()),
     );
   }
 }
@@ -79,4 +54,32 @@ class Root extends ConsumerWidget {
 
     return HomePage();
   }
+}
+
+void getPermissions() {
+  // if (!kIsWeb && Platform.isAndroid) {
+  //   if (await Permission.videos.isDenied ||
+  //       await Permission.videos.isPermanentlyDenied) {
+  //     final state = await Permission.videos.request();
+  //     if (!state.isGranted) {
+  //       await SystemNavigator.pop();
+  //     }
+  //   }
+  //
+  //   if (await Permission.audio.isDenied ||
+  //       await Permission.audio.isPermanentlyDenied) {
+  //     final state = await Permission.audio.request();
+  //     if (!state.isGranted) {
+  //       await SystemNavigator.pop();
+  //     }
+  //   }
+  // } else {
+  //   if (await Permission.storage.isDenied ||
+  //       await Permission.storage.isPermanentlyDenied) {
+  //     final state = await Permission.storage.request();
+  //     if (!state.isGranted) {
+  //       await SystemNavigator.pop();
+  //     }
+  //   }
+  // }
 }

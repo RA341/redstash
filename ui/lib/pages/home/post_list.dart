@@ -119,7 +119,20 @@ class ImageWidget extends ConsumerWidget {
     final basePath = ref.watch(localSettingsProvider).basepath;
     var fullUrl = getUrl(basePath: basePath, link: url);
 
-    return Image.network(fullUrl, fit: BoxFit.contain, width: 400, height: 400);
+    return Image.network(
+      fullUrl,
+      fit: BoxFit.contain,
+      width: 400,
+      height: 400,
+      errorBuilder: (context, error, stackTrace) {
+        return Column(
+          children: [
+            Text("Unable to fetch image"),
+            Text(error.toString()),
+          ],
+        );
+      },
+    );
   }
 }
 

@@ -1,7 +1,9 @@
+import 'dart:convert';
+
 import 'package:connectrpc/connect.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:redstash/config/config.dart';
-
+import 'package:http/http.dart' as http;
 import '../config/logger.dart' show logger;
 import 'grpc_channel_shared.dart';
 
@@ -50,5 +52,16 @@ Future<(T?, String)> runGrpcRequest<T>(Future<T> Function() request) async {
   } catch (e) {
     logger.e('Failed to run GRPC request\nUnknown error: $e');
     return (null, 'Unknown Error: $e');
+  }
+}
+
+Future<(Map<String, String>, String?)> checkServer(String basepath) async {
+  var serverInfo = <String, String>{};
+
+  try {
+
+    return (serverInfo, null);
+  } catch (e) {
+    return (serverInfo, e.toString());
   }
 }

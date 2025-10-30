@@ -28,6 +28,15 @@ class HomePage extends ConsumerWidget {
           elevation: 10,
           actionsPadding: EdgeInsets.symmetric(horizontal: 10),
           actions: [
+            IconButton(
+              onPressed: () {
+                final activeAccount = ref.watch(activeAccountProvider);
+                if (activeAccount != null) {
+                  ref.invalidate(postListProvider(activeAccount));
+                }
+              },
+              icon: Icon(Icons.refresh),
+            ),
             SizedBox(
               width: 170,
               child: DropdownButton<int?>(
@@ -97,7 +106,15 @@ class HomePage extends ConsumerWidget {
             ),
           ],
         ),
-        body: PostList(),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            final activeAccount = ref.watch(activeAccountProvider);
+            if (activeAccount != null) {
+              ref.invalidate(postListProvider(activeAccount));
+            }
+          },
+          child: PostList(),
+        ),
       ),
       error: (error, stackTrace) => Scaffold(
         body: ErrorDisplay(

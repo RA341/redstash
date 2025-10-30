@@ -29,7 +29,7 @@ class AppLocalSettingsNotifier extends Notifier<AppLocalSettings> {
       basepath = prefs.getString(prefKeyBasepath) ?? "";
     }
 
-    if (!basepath.endsWith("/")) {
+    if (basepath.isNotEmpty && !basepath.endsWith("/")) {
       basepath += "/";
     }
 

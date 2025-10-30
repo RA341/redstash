@@ -1,4 +1,4 @@
-package com.example.ui
+package dev.radn.redstash
 
 import io.flutter.embedding.android.FlutterActivity
 

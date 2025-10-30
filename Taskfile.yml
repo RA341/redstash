@@ -25,3 +25,8 @@ tasks:
         -keysize 2048
         -validity 10000
       - coreutils base64 key.jks > key.jks.base64
+
+  dk:
+    cmds:
+      - docker build . -t {{ .IMAGE_BASE }}:dev
+      - docker run -p 8550:8558 {{ .IMAGE_BASE }}:dev

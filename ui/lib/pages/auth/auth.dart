@@ -96,7 +96,9 @@ Future<(String?, List<String>)> inferServerUrl(String url) async {
 
 Future<bool> checkServerUrl(String base) async {
   try {
-    final url = Uri.parse("$base/info");
+    final url = Uri.parse("${base}info");
+    logger.i("basepath ${url.toString()}");
+
     final response = await http.get(url).timeout(Duration(seconds: 2));
     final serverInfo = jsonDecode(response.body);
     logger.i(serverInfo);

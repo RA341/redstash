@@ -3,6 +3,7 @@ package posts
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	connect "connectrpc.com/connect"
 	v1 "github.com/RA341/redstash/generated/posts/v1"
@@ -34,33 +35,6 @@ func (h *Handler) ListDownloaded(ctx context.Context, c *connect.Request[v1.List
 	for _, post := range downloaded {
 		var resItem v1.Post
 
-		switch post.MediaType {
-		case reddit.Gallery:
-			var img downloader.Gallery
-
-			err := json.Unmarshal(post.DownloadData, &img)
-			if err != nil {
-				log.Warn().Err(err).Msg("failed to unmarshal gallery")
-				break
-			}
-
-			var galRes []string
-			for _, g := range img.ImgList {
-				galRes = append(galRes, h.srv.EncodeFileLink(g.Path))
-			}
-			resItem.Gallery = galRes
-		case reddit.Image:
-		case reddit.Video:
-			var img downloader.Image
-
-			err = json.Unmarshal(post.DownloadData, &img)
-			if err != nil {
-				log.Warn().Err(err).Msg("failed to unmarshal image")
-				continue
-			}
-			resItem.DirectLink = h.srv.EncodeFileLink(img.Path)
-		}
-
 		var redditData map[string]interface{}
 		err := json.Unmarshal(post.Data, &redditData)
 		if err != nil {
@@ -73,6 +47,40 @@ func (h *Handler) ListDownloaded(ctx context.Context, c *connect.Request[v1.List
 			continue
 		}
 		resItem.Title = title
+
+		switch post.MediaType {
+		case reddit.Gallery:
+			var img downloader.Gallery
+
+			err := json.Unmarshal(post.DownloadData, &img)
+			if err != nil {
+				log.Warn().Err(err).Msg("failed to unmarshal gallery")
+				break
+			}
+
+			sd := title
+			fmt.Println(sd)
+
+			var galRes []string
+			for _, g := range img.ImgList {
+				galRes = append(galRes, h.srv.EncodeFileLink(g.Path))
+			}
+			resItem.Gallery = galRes
+		case reddit.Image, reddit.Video:
+			var img downloader.Image
+
+			sd := title
+			fmt.Println(sd)
+
+			err = json.Unmarshal(post.DownloadData, &img)
+			if err != nil {
+				log.Warn().Err(err).Msg("failed to unmarshal image")
+				continue
+			}
+			resItem.DirectLink = h.srv.EncodeFileLink(img.Path)
+		}
+
+		resItem.RedditId = post.RedditId
 
 		result = append(result, &resItem)
 	}

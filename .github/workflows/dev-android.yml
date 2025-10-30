@@ -8,7 +8,7 @@ on:
       - main
     paths:
       - ui/**
-      - .github/workflows/action-android.yml
+      - ./.github/workflows/action-android.yml
 
 permissions:
   contents: write

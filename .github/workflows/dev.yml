@@ -10,8 +10,8 @@ on:
       - ui/**
       - core/**
       - Dockerfile
-      - .github/workflows/action-docker.yml
-      - .github/workflows/action-docker-combine.yml
+      - ./.github/workflows/action-docker.yml
+      - ./.github/workflows/action-docker-combine.yml
 
 permissions:
   contents: write

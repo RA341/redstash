@@ -22,7 +22,7 @@ on:
         type: string
         default: 'release'
       flutter_version:
-        description: 'Flutter version to use (e.g., 3.24.0, stable, beta)'
+        description: 'Flutter version to use'
         required: false
         type: string
         default: 'stable'
@@ -60,7 +60,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
 #          flutter-version: ${{ inputs.flutter_version }}
-          channel: inputs.flutter_version
+          channel: ${{inputs.flutter_version}}
           cache: true
 
       - name: Get Flutter dependencies

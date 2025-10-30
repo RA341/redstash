@@ -22,4 +22,5 @@ jobs:
       app_name: 'redstash'
       source_branch: ${{ github.ref_name }}
       version_tag: 'dev'
+
     secrets: inherit

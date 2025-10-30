@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:redstash/gen/downloader/v1/downloader.pb.dart';
@@ -124,7 +125,7 @@ class HomePage extends ConsumerWidget {
               ref.invalidate(postListProvider(activeAccount));
             }
           },
-          child: PostList(),
+          child: PostTabView(),
         ),
       ),
       error: (error, stackTrace) => Scaffold(
@@ -136,6 +137,51 @@ class HomePage extends ConsumerWidget {
       ),
       loading: () => Scaffold(body: LoadingSpinner()),
     );
+  }
+}
+
+class PostTabView extends HookConsumerWidget {
+  const PostTabView({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tabList = [PostList(), ErrorList(), PendingList()];
+
+    final tab = useTabController(
+      initialLength: tabList.length,
+      initialIndex: 0,
+    );
+
+    return Column(
+      children: [
+        TabBar(
+          padding: EdgeInsets.all(20),
+          controller: tab,
+          tabs: [Text("Downloaded"), Text("Error"), Text("Downloading")],
+        ),
+        Expanded(
+          child: TabBarView(controller: tab, children: tabList),
+        ),
+      ],
+    );
+  }
+}
+
+class ErrorList extends ConsumerWidget {
+  const ErrorList({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Text("Error list");
+  }
+}
+
+class PendingList extends ConsumerWidget {
+  const PendingList({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Text("Pending list");
   }
 }
 

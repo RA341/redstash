@@ -5,6 +5,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:redstash/gen/posts/v1/posts.connect.client.dart';
 import 'package:redstash/gen/posts/v1/posts.pb.dart';
 import 'package:redstash/grpc/api.dart';
+import 'package:redstash/pages/home/post_list.dart';
+import 'package:redstash/providers/account.dart';
+
+enum PostFilter { downloaded, error, downloading }
+
+typedef PostListArgs = ({int userId, PostFilter filter});
+
+// final postListArgsProvider = Provider<PostListArgs?>((ref) {});
+
+final postArgProvider = NotifierProvider<PostListArgsNotifier, PostListArgs?>(
+  PostListArgsNotifier.new,
+);
+
+class PostListArgsNotifier extends Notifier<PostListArgs?> {
+  late final activeAccount = ref.watch(activeAccountProvider);
+
+  @override
+  PostListArgs? build() {
+    if (activeAccount == null) {
+      return null;
+    }
+    return (userId: activeAccount!, filter: PostFilter.downloaded);
+  }
+
+  void set(PostFilter filter) =>
+      state = (userId: activeAccount!, filter: filter);
+}
 
 final postApiProvider = Provider<PostsServiceClient>((ref) {
   final transport = ref.watch(connectTransportProvider);

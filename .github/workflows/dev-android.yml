@@ -17,7 +17,7 @@ permissions:
 jobs:
   build-android:
     name: android
-    uses: .github/workflows/action-android.yml
+    uses: ./.github/workflows/action-android.yml
     with:
       app_name: 'redstash'
       source_branch: ${{ github.ref_name }}

@@ -19,7 +19,7 @@ permissions:
 jobs:
   build-docker:
     name: docker
-    uses: .github/workflows/action-docker.yml
+    uses: ./.github/workflows/action-docker.yml
     with:
       source_branch: ${{ github.ref_name }}
       version_tag: 'dev'

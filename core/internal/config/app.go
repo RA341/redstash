@@ -10,7 +10,7 @@ type AppConfig struct {
 	Port           int    `config:"flag=port,env=PORT,default=8558,usage=Port to run the server on"`
 	AllowedOrigins string `config:"flag=origins,env=ORIGINS,default=*,usage=Allowed origins for the API (in CSV)"`
 	UIPath         string `config:"flag=ui,env=UI_PATH,default=dist,usage=Path to frontend files"`
-	ConfigDir      string `config:"flag=conf,env=CONFIG,default=/config,usage=Directory to store redstash config"`
+	ConfigDir      string `config:"flag=conf,env=CONFIG,default=config,usage=Directory to store redstash config"`
 
 	Downloader Downloader `config:""`
 	Reddit     Reddit     `config:""`

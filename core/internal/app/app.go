@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/RA341/redstash/internal/config"
 	"github.com/RA341/redstash/internal/database"
 	"github.com/RA341/redstash/internal/downloader"
+	"github.com/RA341/redstash/internal/info"
 	"github.com/RA341/redstash/internal/posts"
 	"github.com/RA341/redstash/internal/reddit"
 
@@ -80,6 +82,27 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 		},
 		func() (string, http.Handler) {
 			return downrpc.NewDownloaderServiceHandler(downloader.NewHandler(downloaderService))
+		},
+		func() (string, http.Handler) {
+			return "/info", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				infoMap := map[string]string{
+					"version":   info.Version,
+					"flavour":   info.Flavour,
+					"commit":    info.CommitInfo,
+					"buildDate": info.BuildDate,
+				}
+
+				marshal, err := json.Marshal(infoMap)
+				if err != nil {
+					http.Error(w, "unable to marshal info", http.StatusInternalServerError)
+					return
+				}
+
+				_, err = w.Write(marshal)
+				if err != nil {
+					log.Error().Err(err).Msg("unable to write ping")
+				}
+			})
 		},
 	}
 	for _, hand := range handlers {

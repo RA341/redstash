@@ -124,14 +124,12 @@ jobs:
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
-
         with:
           name: ${{ inputs.app_name }}-${{ inputs.version_tag }}
           path: |
             ui/artifacts/*.apk
-            ui/artifacts/build-info.txt
 
-      - name: Create Release (if version tag is semver)
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ inputs.version_tag }}
@@ -140,14 +138,5 @@ jobs:
           prerelease: false
           files: |
             ${{ env.APK_PATH }}
-          body: |
-            ## Release ${{ inputs.version_tag }}
-            
-            **Branch:** ${{ inputs.source_branch }}
-            **Commit:** ${{ github.sha }}
-            **Build Number:** ${{ github.run_number }}
-            
-            ### Download
-            - APK: `${{ env.APK_NAME }}`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -29,23 +29,23 @@ jobs:
       arch_suffix: amd64
       machine: ubuntu-latest
 
-  build-arm64:
-    uses: ./.github/workflows/action-docker.yml
-    with:
-      title: redstash
-      dockerfile: Dockerfile
-      version_tag: canary
-      source_branch: main
-      platform: linux/arm64
-      arch_suffix: arm64
-      machine: ubuntu-24.04-arm
+#  build-arm64:
+#    uses: ./.github/workflows/action-docker.yml
+#    with:
+#      title: redstash
+#      dockerfile: Dockerfile
+#      version_tag: canary
+#      source_branch: main
+#      platform: linux/arm64
+#      arch_suffix: arm64
+#      machine: ubuntu-24.04-arm
 
   combine:
     uses: ./.github/workflows/action-docker-combine.yml
-    needs: [build-amd64, build-arm64]
+    needs: [build-amd64]
     with:
       title: redstash
       version_tag: canary
       is_latest: true
       build_amd64: true
-      build_arm64: true
+      build_arm64: false

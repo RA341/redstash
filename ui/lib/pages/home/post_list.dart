@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:redstash/gen/posts/v1/posts.pb.dart' hide Image, Video;
 import 'package:redstash/providers/account.dart';
 import 'package:redstash/providers/posts.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:redstash/utils/error_display.dart';
 
 class PostList extends ConsumerWidget {
   const PostList({super.key});
@@ -60,18 +62,40 @@ class PostCard extends ConsumerWidget {
       String fullMediaUrl = getUrl(basePath: basePath, link: post.directLink);
       displayWidget = VideoPlayer(videoLink: fullMediaUrl);
     } else if (isGallery) {
-      displayWidget = GalleryWidget(post.gallery);
+      displayWidget = GalleryWidget(gallery: post.gallery);
     } else {
       displayWidget = ImageWidget(url: post.directLink);
     }
 
+    // 1. Get screen height and calculate max height
+    final screenHeight = MediaQuery.of(context).size.height;
+    // 0.7 * screenHeight is 70% of the screen height
+    final maxHeight = screenHeight * 0.5;
+
     return Card(
-      child: SizedBox(
-        height: 700, // Define total height
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Expanded(flex: 1, child: Text(post.title)),
-            Expanded(flex: 4, child: displayWidget),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                post.title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxHeight),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: displayWidget,
+              ),
+            ),
           ],
         ),
       ),
@@ -79,31 +103,78 @@ class PostCard extends ConsumerWidget {
   }
 }
 
-// todo remove and cache this outside maybe in the provider
-String getUrl({required String basePath, required String link}) {
-  var realBase = basePath;
-  if (basePath.endsWith("/")) {
-    realBase = realBase.substring(0, realBase.length - 1);
-  }
-  final streamUrl = "$realBase/api/posts/$link";
-  return streamUrl;
-}
-
-class GalleryWidget extends HookConsumerWidget {
-  const GalleryWidget(this.gallery, {super.key});
+class GalleryWidget extends StatefulWidget {
+  const GalleryWidget({super.key, required this.gallery});
 
   final List<String> gallery;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final controller = usePageController();
+  State<GalleryWidget> createState() => _GalleryWidgetState();
+}
 
+class _GalleryWidgetState extends State<GalleryWidget> {
+  late final PageController controller;
+
+  @override
+  void initState() {
+    controller = PageController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AspectRatio(
       aspectRatio: 1.0,
-      child: PageView(
-        physics: ClampingScrollPhysics(),
-        controller: controller,
-        children: gallery.map((e) => ImageWidget(url: e)).toList(),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          PageView(
+            physics: const ClampingScrollPhysics(),
+            controller: controller,
+            children: widget.gallery.map((e) => ImageWidget(url: e)).toList(),
+          ),
+
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              onPressed: () async {
+                await controller.previousPage(
+                  duration: Duration(milliseconds: 10),
+                  curve: Curves.easeIn,
+                );
+              },
+              icon: const Icon(Icons.arrow_back_ios),
+              iconSize: 30,
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.black45,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              onPressed: () async {
+                await controller.previousPage(
+                  duration: Duration(milliseconds: 10),
+                  curve: Curves.easeIn,
+                );
+              },
+              icon: const Icon(Icons.arrow_forward_ios),
+              iconSize: 30, // Optional: Adjust size
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.black45,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -122,16 +193,14 @@ class ImageWidget extends ConsumerWidget {
     return Image.network(
       fullUrl,
       fit: BoxFit.contain,
-      width: 400,
-      height: 400,
-      errorBuilder: (context, error, stackTrace) {
-        return Column(
-          children: [
-            Text("Unable to fetch image"),
-            Text(error.toString()),
-          ],
-        );
-      },
+      alignment: Alignment.center,
+      width: null,
+      height: null,
+      errorBuilder: (context, error, stackTrace) => ErrorDisplay(
+        title: "Unable to fetch image",
+        error: error.toString(),
+        stacktrace: stackTrace.toString(),
+      ),
     );
   }
 }
@@ -149,7 +218,9 @@ class VideoPlayer extends StatefulWidget {
 
 class VideoPlayerState extends State<VideoPlayer> {
   // Create a [Player] to control playback.
-  late final player = Player(configuration: PlayerConfiguration(muted: false));
+  late final player = Player(
+    configuration: PlayerConfiguration(muted: kDebugMode),
+  );
 
   // Create a [VideoController] to handle video output from [Player].
   late final controller = VideoController(player);
@@ -169,17 +240,16 @@ class VideoPlayerState extends State<VideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.width * 9.0 / 16.0,
-        // Use [Video] widget to display video output.
-        child: Video(
-          controller: controller,
-          // pauseUponEnteringBackgroundMode: true,
-          wakelock: true,
-        ),
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Video(
+        controller: controller,
+        pauseUponEnteringBackgroundMode: true,
+        wakelock: true,
       ),
     );
   }
 }
+
+String getUrl({required String basePath, required String link}) =>
+    "$basePath/api/posts/$link";

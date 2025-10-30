@@ -308,11 +308,13 @@ class Video extends $pb.GeneratedMessage {
 class Post extends $pb.GeneratedMessage {
   factory Post({
     $core.String? title,
+    $core.String? redditId,
     $core.String? directLink,
     $core.Iterable<$core.String>? gallery,
   }) {
     final result = create();
     if (title != null) result.title = title;
+    if (redditId != null) result.redditId = redditId;
     if (directLink != null) result.directLink = directLink;
     if (gallery != null) result.gallery.addAll(gallery);
     return result;
@@ -332,8 +334,9 @@ class Post extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'posts.v1'),
       createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'title')
-    ..aOS(2, _omitFieldNames ? '' : 'directLink', protoName: 'directLink')
-    ..pPS(3, _omitFieldNames ? '' : 'gallery')
+    ..aOS(2, _omitFieldNames ? '' : 'redditId', protoName: 'redditId')
+    ..aOS(3, _omitFieldNames ? '' : 'directLink', protoName: 'directLink')
+    ..pPS(4, _omitFieldNames ? '' : 'gallery')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -365,16 +368,25 @@ class Post extends $pb.GeneratedMessage {
   void clearTitle() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get directLink => $_getSZ(1);
+  $core.String get redditId => $_getSZ(1);
   @$pb.TagNumber(2)
-  set directLink($core.String value) => $_setString(1, value);
+  set redditId($core.String value) => $_setString(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasDirectLink() => $_has(1);
+  $core.bool hasRedditId() => $_has(1);
   @$pb.TagNumber(2)
-  void clearDirectLink() => $_clearField(2);
+  void clearRedditId() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $pb.PbList<$core.String> get gallery => $_getList(2);
+  $core.String get directLink => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set directLink($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasDirectLink() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDirectLink() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $pb.PbList<$core.String> get gallery => $_getList(3);
 }
 
 class PostsServiceApi {

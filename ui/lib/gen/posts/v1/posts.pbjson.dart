@@ -91,15 +91,17 @@ const Post$json = {
   '1': 'Post',
   '2': [
     {'1': 'title', '3': 1, '4': 1, '5': 9, '10': 'title'},
-    {'1': 'directLink', '3': 2, '4': 1, '5': 9, '10': 'directLink'},
-    {'1': 'gallery', '3': 3, '4': 3, '5': 9, '10': 'gallery'},
+    {'1': 'redditId', '3': 2, '4': 1, '5': 9, '10': 'redditId'},
+    {'1': 'directLink', '3': 3, '4': 1, '5': 9, '10': 'directLink'},
+    {'1': 'gallery', '3': 4, '4': 3, '5': 9, '10': 'gallery'},
   ],
 };
 
 /// Descriptor for `Post`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List postDescriptor = $convert.base64Decode(
-    'CgRQb3N0EhQKBXRpdGxlGAEgASgJUgV0aXRsZRIeCgpkaXJlY3RMaW5rGAIgASgJUgpkaXJlY3'
-    'RMaW5rEhgKB2dhbGxlcnkYAyADKAlSB2dhbGxlcnk=');
+    'CgRQb3N0EhQKBXRpdGxlGAEgASgJUgV0aXRsZRIaCghyZWRkaXRJZBgCIAEoCVIIcmVkZGl0SW'
+    'QSHgoKZGlyZWN0TGluaxgDIAEoCVIKZGlyZWN0TGluaxIYCgdnYWxsZXJ5GAQgAygJUgdnYWxs'
+    'ZXJ5');
 
 const $core.Map<$core.String, $core.dynamic> PostsServiceBase$json = {
   '1': 'PostsService',

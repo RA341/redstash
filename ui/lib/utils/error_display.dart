@@ -21,7 +21,7 @@ class ErrorDisplay extends StatelessWidget {
       children: [
         Text(title),
         Text(error),
-        if (stacktrace.isNotEmpty) Text(error),
+        if (stacktrace.isNotEmpty) Text(stacktrace),
       ],
     );
   }

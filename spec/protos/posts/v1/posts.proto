@@ -33,7 +33,7 @@ message Video {
 
 message Post {
   string title = 1;
-
-  string directLink = 2;
-  repeated string gallery = 3;
+  string redditId = 2;
+  string directLink = 3;
+  repeated string gallery = 4;
 }

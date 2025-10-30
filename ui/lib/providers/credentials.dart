@@ -1,11 +1,9 @@
 import 'dart:async';
 
-import 'package:fixnum/fixnum.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:redstash/gen/reddit/v1/reddit.connect.client.dart';
 import 'package:redstash/gen/reddit/v1/reddit.pb.dart';
 import 'package:redstash/grpc/api.dart';
-import 'package:redstash/providers/account.dart';
 import 'package:redstash/providers/account.dart';
 
 final credentialsApiProvider = Provider<RedditServiceClient>((ref) {

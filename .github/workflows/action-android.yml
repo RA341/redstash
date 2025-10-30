@@ -1,0 +1,153 @@
+name: Android Build
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        description: 'Application name for artifact'
+        required: false
+        type: string
+        default: 'redstash'
+      version_tag:
+        description: 'The primary version identifier (e.g., v1.2.3, canary, dev)'
+        required: true
+        type: string
+      source_branch:
+        description: 'The name of the source Git branch (e.g., main, develop)'
+        required: true
+        type: string
+      build_type:
+        description: 'Build type: release, debug, or profile'
+        required: false
+        type: string
+        default: 'release'
+      flutter_version:
+        description: 'Flutter version to use (e.g., 3.24.0, stable, beta)'
+        required: false
+        type: string
+        default: 'stable'
+
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-android:
+    name: Build Android APK (${{ inputs.build_type }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_branch }}
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Setup Debug Keystore
+        working-directory: ui/android/app
+        run: |
+          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 -d > debug.keystore
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ inputs.flutter_version }}
+          channel: ${{ inputs.flutter_version == 'stable' || inputs.flutter_version == 'beta' || inputs.flutter_version == 'master' && inputs.flutter_version || 'stable' }}
+          cache: true
+
+      - name: Get Flutter dependencies
+        working-directory: ui/
+        run: flutter pub get
+
+      - name: Update version in pubspec.yaml
+        working-directory: ui/
+        run: |
+          VERSION="${{ inputs.version_tag }}"
+          # Remove 'v' prefix if present
+          VERSION="${VERSION#v}"
+
+          # Extract version number and build number
+          if [[ "$VERSION" =~ ^([0-9]+\.[0-9]+\.[0-9]+)(\+([0-9]+))?$ ]]; then
+            VERSION_NUMBER="${BASH_REMATCH[1]}"
+            BUILD_NUMBER="${BASH_REMATCH[3]:-${{ github.run_number }}}"
+          else
+            VERSION_NUMBER="$VERSION"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          
+          echo "Version: $VERSION_NUMBER+$BUILD_NUMBER"
+          
+          # Update pubspec.yaml
+          sed -i "s/^version:.*/version: $VERSION_NUMBER+$BUILD_NUMBER/" pubspec.yaml
+
+      - name: Build APK
+        working-directory: ui/
+        run: |
+          flutter build apk --${{ inputs.build_type }} \
+            --build-name="${{ inputs.version_tag }}" \
+            --build-number="${{ github.run_number }}" \
+            --dart-define=VERSION=${{ inputs.version_tag }} \
+            --dart-define=COMMIT_SHA=${{ github.sha }} \
+            --dart-define=BRANCH=${{ inputs.source_branch }}
+
+      - name: Rename APK
+        working-directory: ui/
+        run: |
+          BUILD_TYPE="${{ inputs.build_type }}"
+          VERSION="${{ inputs.version_tag }}"
+          APP_NAME="${{ inputs.app_name }}"
+          
+          # Find the built APK
+          if [[ "$BUILD_TYPE" == "release" ]]; then
+            SOURCE_APK="build/app/outputs/flutter-apk/app-release.apk"
+          else
+            SOURCE_APK="build/app/outputs/flutter-apk/app-$BUILD_TYPE.apk"
+          fi
+          
+          # Create new filename
+          NEW_NAME="${APP_NAME}-${VERSION}-${BUILD_TYPE}.apk"
+          
+          # Copy and rename
+          mkdir -p artifacts
+          cp "$SOURCE_APK" "artifacts/$NEW_NAME"
+          
+          echo "APK_PATH=ui/artifacts/$NEW_NAME" >> $GITHUB_ENV
+          echo "APK_NAME=$NEW_NAME" >> $GITHUB_ENV
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+
+        with:
+          name: ${{ inputs.app_name }}-${{ inputs.version_tag }}
+          path: |
+            ui/artifacts/*.apk
+            ui/artifacts/build-info.txt
+
+      - name: Create Release (if version tag is semver)
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.version_tag }}
+          name: Release ${{ inputs.version_tag }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ env.APK_PATH }}
+          body: |
+            ## Release ${{ inputs.version_tag }}
+            
+            **Branch:** ${{ inputs.source_branch }}
+            **Commit:** ${{ github.sha }}
+            **Build Number:** ${{ github.run_number }}
+            
+            ### Download
+            - APK: `${{ env.APK_NAME }}`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

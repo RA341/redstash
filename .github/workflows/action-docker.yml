@@ -1,68 +1,51 @@
-name: Docker-build
+name: Docker Build (Single Arch)
 
 on:
   workflow_call:
     inputs:
       title:
         description: 'Title for the image'
-        required: false
         type: string
         default: "redstash"
+
       dockerfile:
         description: 'Path to Dockerfile'
-        required: false
         type: string
         default: "Dockerfile"
 
       version_tag:
-        description: 'The primary version identifier (e.g., v1.2.3, canary, dev)'
-        required: true
+        description: 'Version tag (e.g., v1.2.3)'
         type: string
-      source_branch:
-        description: 'The name of the source Git branch (e.g., main, develop)'
         required: true
-        type: string
-      is_latest:
-        description: 'Boolean to indicate if this tag should also be pushed as "latest"'
-        required: false
-        type: boolean
-        default: false
 
-      build_amd64:
-        description: 'Build AMD64 architecture'
-        required: false
-        type: boolean
-        default: true
-      build_arm64:
-        description: 'Build ARM64 architecture'
-        required: false
-        type: boolean
-        default: false
+      source_branch:
+        description: 'Source Git branch'
+        type: string
+        required: true
+
+      platform:
+        description: 'Docker build platform (e.g., linux/amd64 or linux/arm64)'
+        type: string
+        required: true
+
+      arch_suffix:
+        description: 'Suffix for architecture tag (e.g., amd64 or arm64)'
+        type: string
+        required: true
+
+      machine:
+        description: 'Runner label (e.g., ubuntu-latest, ubuntu-24.04-arm)'
+        type: string
+        required: true
 
 permissions:
   contents: read
   packages: write
 
 jobs:
-  build-architectures:
-    strategy:
-      matrix:
-        include:
-          - platform: "linux/amd64"
-            machine: ubuntu-latest
-            arch_suffix: amd64
-            enabled: ${{ inputs.build_amd64 }}
-          - platform: "linux/arm64"
-            machine: ubuntu-24.04-arm
-            arch_suffix: arm64
-            enabled: ${{ inputs.build_arm64 }}
-
-    name: Build ${{ inputs.title }} (${{ matrix.arch_suffix }})
-    runs-on: ${{ matrix.machine }}
-    if: ${{ matrix.enabled }}
-    permissions:
-      contents: read
-      packages: write
+  build:
+    name: Build ${{ inputs.title }} (${{ inputs.arch_suffix }})
+    runs-on: ${{ inputs.machine }}
 
     steps:
       - name: Checkout repository
@@ -82,8 +65,7 @@ jobs:
 
       - name: Lowercase image name
         id: lowercase
-        run: |
-          echo "image=ghcr.io/${{ github.repository_owner }}/${{ inputs.title }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_OUTPUT
+        run: echo "image=ghcr.io/${{ github.repository_owner }}/${{ inputs.title }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_OUTPUT
 
       - name: Generate Docker metadata
         id: meta
@@ -91,121 +73,31 @@ jobs:
         with:
           images: ${{ steps.lowercase.outputs.image }}
           tags: |
-            type=raw,value=${{ inputs.version_tag }}-${{ matrix.arch_suffix }}
+            type=raw,value=${{ inputs.version_tag }}-${{ inputs.arch_suffix }}
           labels: |
             org.opencontainers.image.title=${{ inputs.title }}
-            org.opencontainers.image.description=Docker image for ${{ inputs.title }} (${{ matrix.arch_suffix }})
+            org.opencontainers.image.description=Docker image for ${{ inputs.title }} (${{ inputs.arch_suffix }})
             org.opencontainers.image.vendor=${{ github.repository_owner }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
-      - name: Pull existing image for cache
+      - name: Pull cache (if available)
         continue-on-error: true
-        run: |
-          docker pull ${{ steps.lowercase.outputs.image }}:${{ inputs.source_branch }}-${{ matrix.arch_suffix }} || true
+        run: docker pull ${{ steps.lowercase.outputs.image }}:${{ inputs.source_branch }}-${{ inputs.arch_suffix }} || true
 
-      - name: Build and push Docker image
+      - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ inputs.dockerfile }}
           push: true
+          platforms: ${{ inputs.platform }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: ${{ matrix.platform }}
           cache-to: type=gha,mode=max
           cache-from: |
             type=gha
-            type=registry,ref=${{ steps.lowercase.outputs.image }}:${{ inputs.source_branch }}-${{ matrix.arch_suffix }}
+            type=registry,ref=${{ steps.lowercase.outputs.image }}:${{ inputs.source_branch }}-${{ inputs.arch_suffix }}
           build-args: |
             VERSION=${{ inputs.version_tag }}
             COMMIT_INFO=${{ github.sha }}
             BRANCH=${{ inputs.source_branch }}
-
-  create-multiarch-manifest:
-    needs: build-architectures
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Lowercase image name
-        id: lowercase
-        run: |
-          echo "image=ghcr.io/${{ github.repository_owner }}/${{ inputs.title }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_OUTPUT
-
-      - name: Generate Docker image tags and labels
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ steps.lowercase.outputs.image }}
-          tags: |
-            # assumes `version_tag` is valid SemVer skip tag if empty (vX.Y.Z or X.Y.Z), create major and major.minor tags.
-            # Example: if version_tag is "v1.2.3", this adds "v1" and "v1.2".
-            
-            type=raw,value=${{ inputs.version_tag }},enable=${{ inputs.version_tag != '' }}
-            type=semver,pattern=v{{major}},value=${{ inputs.version_tag }},enable=${{ inputs.version_tag != '' }}
-            type=semver,pattern=v{{major}}.{{minor}},value=${{ inputs.version_tag }},enable=${{ inputs.version_tag != '' }}
-
-            # `source_branch` input is provided add it as a tag.
-            type=raw,value=${{ inputs.source_branch }},enable=${{ inputs.source_branch != '' }}            
-            
-            # short commit SHA tag for traceability.
-            # type=sha,prefix=,suffix=,format=short,enable=${{ inputs.source_branch == 'main' }}
-
-            # Add 'dev' tag if the source branch is 'main'.
-            # type=raw,value=dev,enable=${{ inputs.source_branch == 'main' }}            
-            
-            # Add 'latest' tag if `is_latest` input is true.
-            type=raw,value=latest,enable=${{ inputs.is_latest }}
-
-          labels: |
-            org.opencontainers.image.title=${{ inputs.title }}
-            org.opencontainers.image.description=Docker image for ${{ inputs.title }}.
-            org.opencontainers.image.vendor=${{ github.repository_owner }}
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-
-      - name: Create and push multi-arch manifest
-        run: |
-          SOURCE_IMAGES=()
-          
-          # Add AMD64 image if it was built
-          if [[ "${{ inputs.build_amd64 }}" == "true" ]]; then
-            SOURCE_IMAGES+=("${{ steps.lowercase.outputs.image }}:${{ inputs.version_tag }}-amd64")
-          fi
-          
-          # Add ARM64 image if it was built
-          if [[ "${{ inputs.build_arm64 }}" == "true" ]]; then
-            SOURCE_IMAGES+=("${{ steps.lowercase.outputs.image }}:${{ inputs.version_tag }}-arm64")
-          fi
-          
-          # Check if we have at least one image
-          if [[ ${#SOURCE_IMAGES[@]} -eq 0 ]]; then
-            echo "Error: No architectures were built. At least one architecture must be enabled."
-            exit 1
-          fi
-          
-          # Parse tags from metadata action output
-          TAGS="${{ steps.meta.outputs.tags }}"
-          
-          # Create manifest for each tag
-          while IFS= read -r TAG; do
-            if [[ -n "$TAG" ]]; then
-              echo "Creating manifest for $TAG with images: ${SOURCE_IMAGES[@]}"
-              docker buildx imagetools create -t "$TAG" "${SOURCE_IMAGES[@]}"
-            fi
-          done <<< "$TAGS"
-
-      - name: Inspect multi-arch image
-        run: |
-          docker buildx imagetools inspect ${{ steps.lowercase.outputs.image }}:${{ inputs.version_tag }}

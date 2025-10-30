@@ -59,8 +59,8 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ inputs.flutter_version }}
-          channel: ${{ inputs.flutter_version == 'stable' || inputs.flutter_version == 'beta' || inputs.flutter_version == 'master' && inputs.flutter_version || 'stable' }}
+#          flutter-version: ${{ inputs.flutter_version }}
+          channel: inputs.flutter_version
           cache: true
 
       - name: Get Flutter dependencies

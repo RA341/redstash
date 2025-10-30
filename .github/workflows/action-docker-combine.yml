@@ -1,0 +1,87 @@
+name: Docker Manifest (Combine Images)
+
+on:
+  workflow_call:
+    inputs:
+      title:
+        description: 'Title for the image'
+        type: string
+        default: "redstash"
+
+      version_tag:
+        description: 'Version identifier (e.g., v1.2.3)'
+        type: string
+        required: true
+
+      is_latest:
+        description: 'Also tag as latest'
+        type: boolean
+        default: false
+
+      build_amd64:
+        description: 'Include amd64 in manifest'
+        type: boolean
+        default: true
+
+      build_arm64:
+        description: 'Include arm64 in manifest'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  create-manifest:
+    name: Create Multi-Arch Manifest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lowercase image name
+        id: lowercase
+        run: echo "image=ghcr.io/${{ github.repository_owner }}/${{ inputs.title }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_OUTPUT
+
+      - name: Generate Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.lowercase.outputs.image }}
+          tags: |
+            type=raw,value=${{ inputs.version_tag }}
+            type=semver,pattern=v{{major}},value=${{ inputs.version_tag }},enable=${{ inputs.version_tag != '' }}
+            type=semver,pattern=v{{major}}.{{minor}},value=${{ inputs.version_tag }},enable=${{ inputs.version_tag != '' }}
+            type=raw,value=latest,enable=${{ inputs.is_latest }}
+
+      - name: Create and push manifest
+        run: |
+          SOURCE_IMAGES=()
+          if [[ "${{ inputs.build_amd64 }}" == "true" ]]; then
+            SOURCE_IMAGES+=("${{ steps.lowercase.outputs.image }}:${{ inputs.version_tag }}-amd64")
+          fi
+          if [[ "${{ inputs.build_arm64 }}" == "true" ]]; then
+            SOURCE_IMAGES+=("${{ steps.lowercase.outputs.image }}:${{ inputs.version_tag }}-arm64")
+          fi
+
+          if [[ ${#SOURCE_IMAGES[@]} -eq 0 ]]; then
+            echo "No architectures were provided. Exiting."
+            exit 1
+          fi
+
+          echo "Creating manifest with sources: ${SOURCE_IMAGES[@]}"
+
+          while IFS= read -r TAG; do
+            if [[ -n "$TAG" ]]; then
+              docker buildx imagetools create -t "$TAG" "${SOURCE_IMAGES[@]}"
+            fi
+          done <<< "${{ steps.meta.outputs.tags }}"
+
+      - name: Inspect manifest
+        run: docker buildx imagetools inspect ${{ steps.lowercase.outputs.image }}:${{ inputs.version_tag }}

@@ -51,10 +51,6 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Setup Debug Keystore
-        working-directory: ui/android/app
-        run: |
-          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 -d > debug.keystore
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -67,12 +63,18 @@ jobs:
         working-directory: ui/
         run: flutter pub get
 
+      - name: Setup Debug Keystore
+        working-directory: ui/android/app
+        run: |
+          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 -d > debug.keystore
+
       - name: Build APK
         working-directory: ui/
         run: |
           COMMIT_HASH=$(git rev-parse --short HEAD)
           COMMIT_COUNT=$(git rev-list --count HEAD)
           BUILD_VERSION="${{ inputs.version_tag }}+$COMMIT_COUNT"
+          
           flutter build apk --release \
           --build-name=$BUILD_VERSION \
           --build-number=$COMMIT_COUNT

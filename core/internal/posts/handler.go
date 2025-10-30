@@ -34,19 +34,6 @@ func (h *Handler) ListDownloaded(ctx context.Context, c *connect.Request[v1.List
 	for _, post := range downloaded {
 		var resItem v1.Post
 
-		var redditData map[string]interface{}
-		err := json.Unmarshal(post.Data, &redditData)
-		if err != nil {
-			log.Warn().Err(err).Msg("failed to unmarshal reddit data")
-			continue
-		}
-		title, ok := redditData["title"].(string)
-		if !ok {
-			log.Warn().Msg("reddit title is not a string")
-			continue
-		}
-		resItem.Title = title
-
 		switch post.MediaType {
 		case reddit.Gallery:
 			var img downloader.Gallery
@@ -74,6 +61,9 @@ func (h *Handler) ListDownloaded(ctx context.Context, c *connect.Request[v1.List
 		}
 
 		resItem.RedditId = post.RedditId
+		resItem.Title = post.Title
+		resItem.Subreddit = post.Subreddit
+		resItem.RedditCreated = post.CreatedReddit.Unix()
 
 		result = append(result, &resItem)
 	}

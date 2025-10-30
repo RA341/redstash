@@ -33,14 +33,14 @@ func NewManagerService(
 		conf:            conf,
 	}
 }
-func (s *ManagerService) TriggerDownload() {
+func (s *ManagerService) TriggerPostCollector() {
 	s.clients.Range(func(key string, value *ClientService) bool {
 		value.task.Manual()
 		return true
 	})
 }
 
-func (s *ManagerService) LoadClients() error {
+func (s *ManagerService) LoadAllClients() error {
 	list, err := s.List()
 	if err != nil {
 		return fmt.Errorf("failed to list clients: %w", err)
@@ -53,19 +53,24 @@ func (s *ManagerService) LoadClients() error {
 			continue
 		}
 
-		cli := NewClientService(
-			s.conf,
-			&accountInfo,
-			s.store,
-			s.posts,
-			s.triggerDownload,
-		)
-
-		s.clients.Store(accountInfo.Username, cli)
-		log.Info().Str("name", accountInfo.Username).Msg("Client loaded")
+		s.loadClient(accountInfo)
 	}
+	s.TriggerPostCollector()
 
 	return nil
+}
+
+func (s *ManagerService) loadClient(accountInfo Credential) {
+	cli := NewClientService(
+		s.conf,
+		&accountInfo,
+		s.store,
+		s.posts,
+		s.triggerDownload,
+	)
+
+	s.clients.Store(accountInfo.Username, cli)
+	log.Info().Str("name", accountInfo.Username).Msg("Client loaded")
 }
 
 func (s *ManagerService) List() ([]Credential, error) {
@@ -78,9 +83,28 @@ func (s *ManagerService) Create(cred *Credential) error {
 		return fmt.Errorf("unable to verfiy credentials %w", err)
 	}
 
-	return s.store.New(cred)
+	err = s.store.New(cred)
+	if err != nil {
+		return err
+	}
+
+	err = s.LoadAllClients()
+	if err != nil {
+		return err
+	}
+
+	s.TriggerPostCollector()
+
+	return nil
 }
 
 func (s *ManagerService) Delete(id uint) error {
-	return s.store.Delete(id)
+	err := s.store.Delete(id)
+	if err != nil {
+		return err
+	}
+
+	// todo download
+
+	return nil
 }

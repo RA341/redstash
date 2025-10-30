@@ -27,7 +27,8 @@ func (g *GormPostStore) ListError(offset, limit int, result *[]Post, accountID i
 
 func (g *GormPostStore) loadPostsByLastUpdated(offset int, limit int, accountID int) *gorm.DB {
 	return g.db.
-		Order("updated_at desc").Limit(limit).Offset(offset).
+		Order("created_reddit desc").
+		Limit(limit).Offset(offset).
 		Where("user_credential_id = ?", accountID)
 }
 

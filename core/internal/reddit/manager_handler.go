@@ -60,7 +60,7 @@ func (h *Handler) ListAccount(context.Context, *connect.Request[v1.ListAccountRe
 }
 
 func (h *Handler) SyncPosts(context.Context, *connect.Request[v1.RunTaskRequest]) (*connect.Response[v1.RunTaskResponse], error) {
-	h.srv.TriggerDownload()
+	h.srv.TriggerPostCollector()
 	return connect.NewResponse(&v1.RunTaskResponse{}), nil
 }
 

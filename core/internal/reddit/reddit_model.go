@@ -3,7 +3,9 @@ package reddit
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
+	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 )
 
@@ -38,6 +40,11 @@ type Post struct {
 	MediaType MediaType
 	Data      []byte `gorm:"type:text"`
 
+	PermLink      string
+	Subreddit     string
+	Title         string
+	CreatedReddit time.Time
+
 	DownloadData []byte `gorm:"type:text"`
 	ErrorData    string `gorm:"type:text"`
 }
@@ -54,13 +61,40 @@ func (p *Post) SetData(data map[string]interface{}, cred *Credential) error {
 	}
 
 	p.UserCredentialID = cred.ID
-	p.Credential = *cred
 
-	redID, ok := data["name"].(string)
-	if !ok {
-		return fmt.Errorf("reddit id not found")
+	redID, err := getMapVal[string](data, "name")
+	if err != nil {
+		return err
 	}
+
+	title, err := getMapVal[string](data, "title")
+	if err != nil {
+		return err
+	}
+	subreddit, err := getMapVal[string](data, "subreddit")
+	if err != nil {
+		log.Warn().Err(err).Msg("unable to get value")
+		return err
+	}
+
+	permLink, err := getMapVal[string](data, "permalink")
+	if err != nil {
+		log.Warn().Err(err).Msg("unable to get value")
+		return err
+	}
+
+	created, err := getMapVal[float64](data, "created")
+	if err != nil {
+		log.Warn().Err(err).Msg("unable to get value")
+		return err
+	}
+	createdAt := time.Unix(int64(created), 0)
+
 	p.RedditId = redID
+	p.Title = title
+	p.Subreddit = subreddit
+	p.CreatedReddit = createdAt
+	p.PermLink = permLink
 
 	b, err := json.Marshal(data)
 	if err != nil {
@@ -80,4 +114,13 @@ type SavedResponse struct {
 			Data map[string]interface{} `json:"data"`
 		} `json:"children"`
 	} `json:"data"`
+}
+
+func getMapVal[T any](data map[string]interface{}, key string) (T, error) {
+	value, ok := data[key].(T)
+	if !ok {
+		var zero T
+		return zero, fmt.Errorf("key=%s is not a str or does not exist. value=%v", key, value)
+	}
+	return value, nil
 }

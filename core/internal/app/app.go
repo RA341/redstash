@@ -30,13 +30,28 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 	managerStore := reddit.NewGormCredentialStore(db)
 	postStore := reddit.NewGormPostStore(db)
 
-	//if info.IsDev() {
-	//	log.Info().Msg("Dev Mode clearing download data")
-	//	err := postStore.ClearDownloadData()
-	//	if err != nil {
-	//		return nil, fmt.Errorf("error clearing download data: %w", err)
-	//	}
-	//}
+	if info.IsDev() {
+		//list, err := managerStore.List()
+		//if err != nil {
+		//	return nil, err
+		//}
+		//
+		//for _, post := range list {
+		//	post.PostBefore = ""
+		//	post.PostAfter = ""
+		//
+		//	err = managerStore.New(&post)
+		//	if err != nil {
+		//		return nil, err
+		//	}
+		//}
+		//
+		//log.Info().Msg("Dev Mode clearing download data")
+		//err = postStore.ClearDownloadData()
+		//if err != nil {
+		//	return nil, fmt.Errorf("error clearing download data: %w", err)
+		//}
+	}
 
 	// services
 	downloaderService := downloader.NewService(
@@ -55,7 +70,7 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 		postStore,
 		downloaderService.Task.Manual,
 	)
-	err := redditManager.LoadClients()
+	err := redditManager.LoadAllClients()
 	if err != nil {
 		return nil, fmt.Errorf("error occured while initilized client manager: %w", err)
 	}

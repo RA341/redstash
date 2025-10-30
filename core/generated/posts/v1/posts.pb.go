@@ -260,9 +260,11 @@ func (x *Video) GetVideo() []string {
 type Post struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	RedditId      string                 `protobuf:"bytes,2,opt,name=redditId,proto3" json:"redditId,omitempty"`
-	DirectLink    string                 `protobuf:"bytes,3,opt,name=directLink,proto3" json:"directLink,omitempty"`
-	Gallery       []string               `protobuf:"bytes,4,rep,name=gallery,proto3" json:"gallery,omitempty"`
+	DirectLink    string                 `protobuf:"bytes,2,opt,name=directLink,proto3" json:"directLink,omitempty"`
+	Gallery       []string               `protobuf:"bytes,3,rep,name=gallery,proto3" json:"gallery,omitempty"`
+	RedditId      string                 `protobuf:"bytes,4,opt,name=redditId,proto3" json:"redditId,omitempty"`
+	Subreddit     string                 `protobuf:"bytes,5,opt,name=subreddit,proto3" json:"subreddit,omitempty"`
+	RedditCreated int64                  `protobuf:"varint,6,opt,name=RedditCreated,proto3" json:"RedditCreated,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -304,13 +306,6 @@ func (x *Post) GetTitle() string {
 	return ""
 }
 
-func (x *Post) GetRedditId() string {
-	if x != nil {
-		return x.RedditId
-	}
-	return ""
-}
-
 func (x *Post) GetDirectLink() string {
 	if x != nil {
 		return x.DirectLink
@@ -323,6 +318,27 @@ func (x *Post) GetGallery() []string {
 		return x.Gallery
 	}
 	return nil
+}
+
+func (x *Post) GetRedditId() string {
+	if x != nil {
+		return x.RedditId
+	}
+	return ""
+}
+
+func (x *Post) GetSubreddit() string {
+	if x != nil {
+		return x.Subreddit
+	}
+	return ""
+}
+
+func (x *Post) GetRedditCreated() int64 {
+	if x != nil {
+		return x.RedditCreated
+	}
+	return 0
 }
 
 var File_posts_v1_posts_proto protoreflect.FileDescriptor
@@ -341,14 +357,16 @@ const file_posts_v1_posts_proto_rawDesc = "" +
 	"\x05Image\x12\x14\n" +
 	"\x05image\x18\x01 \x01(\tR\x05image\"\x1d\n" +
 	"\x05Video\x12\x14\n" +
-	"\x05video\x18\x01 \x03(\tR\x05video\"r\n" +
+	"\x05video\x18\x01 \x03(\tR\x05video\"\xb6\x01\n" +
 	"\x04Post\x12\x14\n" +
-	"\x05title\x18\x01 \x01(\tR\x05title\x12\x1a\n" +
-	"\bredditId\x18\x02 \x01(\tR\bredditId\x12\x1e\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\x12\x1e\n" +
 	"\n" +
-	"directLink\x18\x03 \x01(\tR\n" +
+	"directLink\x18\x02 \x01(\tR\n" +
 	"directLink\x12\x18\n" +
-	"\agallery\x18\x04 \x03(\tR\agallery2e\n" +
+	"\agallery\x18\x03 \x03(\tR\agallery\x12\x1a\n" +
+	"\bredditId\x18\x04 \x01(\tR\bredditId\x12\x1c\n" +
+	"\tsubreddit\x18\x05 \x01(\tR\tsubreddit\x12$\n" +
+	"\rRedditCreated\x18\x06 \x01(\x03R\rRedditCreated2e\n" +
 	"\fPostsService\x12U\n" +
 	"\x0eListDownloaded\x12\x1f.posts.v1.ListDownloadedRequest\x1a .posts.v1.ListDownloadedResponse\"\x00B\x89\x01\n" +
 	"\fcom.posts.v1B\n" +

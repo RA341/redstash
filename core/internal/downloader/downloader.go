@@ -20,10 +20,9 @@ func downloadGallery(post *reddit.Post, downloadDir string) error {
 		return err
 	}
 
-	imgMap := data["media_metadata"].(map[string]interface{})
-
 	var imgList Gallery
 
+	imgMap := data["media_metadata"].(map[string]interface{})
 	for _, i := range imgMap {
 		downloadLink := i.(map[string]interface{})["s"].(map[string]interface{})["u"].(string)
 		filename, err := downloadMediaLink(downloadLink, downloadDir)
@@ -33,13 +32,7 @@ func downloadGallery(post *reddit.Post, downloadDir string) error {
 		imgList.ImgList = append(imgList.ImgList, Image{filename})
 	}
 
-	marshal, err := json.Marshal(imgList)
-	if err != nil {
-		return err
-	}
-	post.DownloadData = marshal
-
-	return nil
+	return postDownloadFn(post, &imgList)
 }
 
 func downloadImage(post *reddit.Post, downloadDir string) error {
@@ -59,13 +52,8 @@ func downloadImage(post *reddit.Post, downloadDir string) error {
 	}
 
 	img := Image{Path: filename}
-	marshal, err := json.Marshal(img)
-	if err != nil {
-		return err
-	}
-	post.DownloadData = marshal
 
-	return nil
+	return postDownloadFn(post, &img)
 }
 
 func downloadVideo(post *reddit.Post, downloadDir string, downloader *RedgifsClient) error {
@@ -92,12 +80,18 @@ func downloadVideo(post *reddit.Post, downloadDir string, downloader *RedgifsCli
 	}
 
 	img := Image{Path: fromLink}
-	marshal, err := json.Marshal(img)
+
+	return postDownloadFn(post, &img)
+}
+
+func postDownloadFn(post *reddit.Post, downloadData any) error {
+	marshal, err := json.Marshal(downloadData)
 	if err != nil {
 		return err
 	}
-	post.DownloadData = marshal
 
+	post.DownloadData = marshal
+	post.Data = nil
 	return nil
 }
 

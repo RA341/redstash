@@ -13,10 +13,12 @@ type Service struct {
 }
 
 func NewService(db reddit.PostStore, downloadPath string) *Service {
-	return &Service{
+	s := &Service{
 		store:        db,
 		downloadPath: downloadPath,
 	}
+
+	return s
 }
 
 func (s *Service) EncodeFileLink(link string) string {

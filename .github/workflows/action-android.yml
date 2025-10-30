@@ -59,7 +59,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-#          flutter-version: ${{ inputs.flutter_version }}
+          #          flutter-version: ${{ inputs.flutter_version }}
           channel: ${{inputs.flutter_version}}
           cache: true
 
@@ -67,36 +67,22 @@ jobs:
         working-directory: ui/
         run: flutter pub get
 
-      - name: Update version in pubspec.yaml
-        working-directory: ui/
-        run: |
-          VERSION="${{ inputs.version_tag }}"
-          # Remove 'v' prefix if present
-          VERSION="${VERSION#v}"
-
-          # Extract version number and build number
-          if [[ "$VERSION" =~ ^([0-9]+\.[0-9]+\.[0-9]+)(\+([0-9]+))?$ ]]; then
-            VERSION_NUMBER="${BASH_REMATCH[1]}"
-            BUILD_NUMBER="${BASH_REMATCH[3]:-${{ github.run_number }}}"
-          else
-            VERSION_NUMBER="$VERSION"
-            BUILD_NUMBER="${{ github.run_number }}"
-          fi
-          
-          echo "Version: $VERSION_NUMBER+$BUILD_NUMBER"
-          
-          # Update pubspec.yaml
-          sed -i "s/^version:.*/version: $VERSION_NUMBER+$BUILD_NUMBER/" pubspec.yaml
-
       - name: Build APK
         working-directory: ui/
         run: |
-          flutter build apk --${{ inputs.build_type }} \
-            --build-name="${{ inputs.version_tag }}" \
-            --build-number="${{ github.run_number }}" \
-            --dart-define=VERSION=${{ inputs.version_tag }} \
-            --dart-define=COMMIT_SHA=${{ github.sha }} \
-            --dart-define=BRANCH=${{ inputs.source_branch }}
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          BUILD_VERSION="${{ inputs.version_tag }}+$COMMIT_COUNT"
+          flutter build apk --release \
+          --build-name=$BUILD_VERSION \
+          --build-number=$COMMIT_COUNT
+
+      #          flutter build apk --${{ inputs.build_type }} \
+      #            --build-name="" \
+      #            --build-number="${{ github.run_number }}" \
+      #            --dart-define=VERSION=${{ inputs.version_tag }} \
+      #            --dart-define=COMMIT_SHA=${{ github.sha }} \
+      #            --dart-define=BRANCH=${{ inputs.source_branch }}
 
       - name: Rename APK
         working-directory: ui/

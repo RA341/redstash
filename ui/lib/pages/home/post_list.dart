@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:redstash/config/config.dart';
+import 'package:redstash/config/logger.dart';
 import 'package:redstash/gen/posts/v1/posts.pb.dart' hide Image, Video;
 import 'package:redstash/providers/account.dart';
 import 'package:redstash/providers/posts.dart';
@@ -70,7 +71,7 @@ class PostCard extends ConsumerWidget {
     // 1. Get screen height and calculate max height
     final screenHeight = MediaQuery.of(context).size.height;
     // 0.7 * screenHeight is 70% of the screen height
-    final maxHeight = screenHeight * 0.5;
+    final maxHeight = screenHeight * 0.7;
 
     return Card(
       child: Padding(
@@ -89,13 +90,14 @@ class PostCard extends ConsumerWidget {
                 ),
               ),
             ),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: maxHeight),
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: displayWidget,
-              ),
-            ),
+            Align(alignment: Alignment.topCenter, child: displayWidget),
+            // ConstrainedBox(
+            //   constraints: BoxConstraints(maxHeight: maxHeight),
+            //   child: Align(
+            //     alignment: Alignment.topCenter,
+            //     child: displayWidget,
+            //   ),
+            // ),
           ],
         ),
       ),
@@ -167,7 +169,7 @@ class _GalleryWidgetState extends State<GalleryWidget> {
                 );
               },
               icon: const Icon(Icons.arrow_forward_ios),
-              iconSize: 30, // Optional: Adjust size
+              iconSize: 30,
               style: IconButton.styleFrom(
                 backgroundColor: Colors.black45,
                 foregroundColor: Colors.white,
@@ -188,40 +190,30 @@ class ImageWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final basePath = ref.watch(localSettingsProvider).basepath;
+
     var fullUrl = getUrl(basePath: basePath, link: url);
 
     return Image.network(
       fullUrl,
       fit: BoxFit.contain,
       alignment: Alignment.center,
-      width: null,
-      height: null,
-      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-        // If loadingProgress is null, the image is fully loaded, so return the child (the image).
-        if (loadingProgress == null) {
-          return child;
-        }
+      loadingBuilder:
+          (
+            BuildContext context,
+            Widget child,
+            ImageChunkEvent? loadingProgress,
+          ) {
+            if (loadingProgress == null) return child;
 
-        // Calculate the download progress as a fraction (0.0 to 1.0).
-        // The 'expectedTotalBytes' could be null, so handle that case.
-        double? progress;
-        if (loadingProgress.expectedTotalBytes != null) {
-          progress =
-              loadingProgress.cumulativeBytesLoaded /
-              loadingProgress.expectedTotalBytes!;
-        }
+            double? progress;
+            if (loadingProgress.expectedTotalBytes != null) {
+              progress =
+                  loadingProgress.cumulativeBytesLoaded /
+                  loadingProgress.expectedTotalBytes!;
+            }
 
-        // Return a Center widget to put the indicator in the middle of the image's space.
-        return Center(
-          child: CircularProgressIndicator(
-            // The value argument should be null for an indeterminate (spinning) indicator.
-            // If we have calculated progress, we provide it. Otherwise, it remains null.
-            value: progress,
-            // You can customize the color or size here.
-            // color: Colors.blue,
-          ),
-        );
-      },
+            return Center(child: CircularProgressIndicator(value: progress));
+          },
       errorBuilder: (context, error, stackTrace) => ErrorDisplay(
         title: "Unable to fetch image",
         error: error.toString(),
@@ -243,37 +235,56 @@ class VideoPlayer extends StatefulWidget {
 }
 
 class VideoPlayerState extends State<VideoPlayer> {
-  // Create a [Player] to control playback.
   late final player = Player(
     configuration: PlayerConfiguration(muted: kDebugMode),
   );
 
-  // Create a [VideoController] to handle video output from [Player].
   late final controller = VideoController(player);
 
   @override
   void initState() {
     super.initState();
-    // Play a [Media] or [Playlist].
     player.open(Media(widget.videoLink));
+  }
+
+  var videoRatio = 16 / 9;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: controller.rect,
+      builder: (context, value, child) {
+        if (value != null) {
+          // todo precompute aspect ratio
+          videoRatio = value.width / value.height >= 1.0
+              // Landscape or square (Wider than 1:1, so we set a standard 16:9)
+              ? 16 / 9
+              // Portrait or Taller (Taller than 1:1, so we set a standard 4:5)
+              : 4 / 5;
+
+          // logger.i("Target: $videoRatio");
+        }
+
+        return Column(
+          children: [
+            AspectRatio(
+              aspectRatio: videoRatio,
+              child: Video(
+                controller: controller,
+                pauseUponEnteringBackgroundMode: true,
+                wakelock: true,
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   void dispose() {
     player.dispose();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Video(
-        controller: controller,
-        pauseUponEnteringBackgroundMode: true,
-        wakelock: true,
-      ),
-    );
   }
 }
 

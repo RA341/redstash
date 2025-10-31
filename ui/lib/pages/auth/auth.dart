@@ -86,7 +86,7 @@ Future<(String?, List<String>)> inferServerUrl(String url) async {
   final candidates = generateUrlCandidates(url);
 
   for (final url in candidates) {
-    if (await checkServerUrl(url)) {
+    if (await checkServerUrl("$url/")) {
       return (url, <String>[]);
     }
   }

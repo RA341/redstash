@@ -196,6 +196,32 @@ class ImageWidget extends ConsumerWidget {
       alignment: Alignment.center,
       width: null,
       height: null,
+      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+        // If loadingProgress is null, the image is fully loaded, so return the child (the image).
+        if (loadingProgress == null) {
+          return child;
+        }
+
+        // Calculate the download progress as a fraction (0.0 to 1.0).
+        // The 'expectedTotalBytes' could be null, so handle that case.
+        double? progress;
+        if (loadingProgress.expectedTotalBytes != null) {
+          progress =
+              loadingProgress.cumulativeBytesLoaded /
+              loadingProgress.expectedTotalBytes!;
+        }
+
+        // Return a Center widget to put the indicator in the middle of the image's space.
+        return Center(
+          child: CircularProgressIndicator(
+            // The value argument should be null for an indeterminate (spinning) indicator.
+            // If we have calculated progress, we provide it. Otherwise, it remains null.
+            value: progress,
+            // You can customize the color or size here.
+            // color: Colors.blue,
+          ),
+        );
+      },
       errorBuilder: (context, error, stackTrace) => ErrorDisplay(
         title: "Unable to fetch image",
         error: error.toString(),

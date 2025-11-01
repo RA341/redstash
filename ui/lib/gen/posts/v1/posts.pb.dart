@@ -157,7 +157,7 @@ class ListDownloadedResponse extends $pb.GeneratedMessage {
 
 class Gallery extends $pb.GeneratedMessage {
   factory Gallery({
-    $core.Iterable<$core.String>? images,
+    $core.Iterable<Media>? images,
   }) {
     final result = create();
     if (images != null) result.images.addAll(images);
@@ -177,7 +177,8 @@ class Gallery extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Gallery',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'posts.v1'),
       createEmptyInstance: create)
-    ..pPS(1, _omitFieldNames ? '' : 'images')
+    ..pc<Media>(1, _omitFieldNames ? '' : 'images', $pb.PbFieldType.PM,
+        subBuilder: Media.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -200,12 +201,12 @@ class Gallery extends $pb.GeneratedMessage {
   static Gallery? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $pb.PbList<$core.String> get images => $_getList(0);
+  $pb.PbList<Media> get images => $_getList(0);
 }
 
 class Image extends $pb.GeneratedMessage {
   factory Image({
-    $core.String? image,
+    Media? image,
   }) {
     final result = create();
     if (image != null) result.image = image;
@@ -225,7 +226,7 @@ class Image extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Image',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'posts.v1'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'image')
+    ..aOM<Media>(1, _omitFieldNames ? '' : 'image', subBuilder: Media.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -248,21 +249,23 @@ class Image extends $pb.GeneratedMessage {
   static Image? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get image => $_getSZ(0);
+  Media get image => $_getN(0);
   @$pb.TagNumber(1)
-  set image($core.String value) => $_setString(0, value);
+  set image(Media value) => $_setField(1, value);
   @$pb.TagNumber(1)
   $core.bool hasImage() => $_has(0);
   @$pb.TagNumber(1)
   void clearImage() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Media ensureImage() => $_ensure(0);
 }
 
 class Video extends $pb.GeneratedMessage {
   factory Video({
-    $core.Iterable<$core.String>? video,
+    Media? video,
   }) {
     final result = create();
-    if (video != null) result.video.addAll(video);
+    if (video != null) result.video = video;
     return result;
   }
 
@@ -279,7 +282,7 @@ class Video extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Video',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'posts.v1'),
       createEmptyInstance: create)
-    ..pPS(1, _omitFieldNames ? '' : 'video')
+    ..aOM<Media>(1, _omitFieldNames ? '' : 'video', subBuilder: Media.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -302,14 +305,88 @@ class Video extends $pb.GeneratedMessage {
   static Video? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $pb.PbList<$core.String> get video => $_getList(0);
+  Media get video => $_getN(0);
+  @$pb.TagNumber(1)
+  set video(Media value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasVideo() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearVideo() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Media ensureVideo() => $_ensure(0);
+}
+
+class Media extends $pb.GeneratedMessage {
+  factory Media({
+    $core.String? url,
+    $core.double? ratio,
+  }) {
+    final result = create();
+    if (url != null) result.url = url;
+    if (ratio != null) result.ratio = ratio;
+    return result;
+  }
+
+  Media._();
+
+  factory Media.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Media.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Media',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'posts.v1'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'url')
+    ..a<$core.double>(2, _omitFieldNames ? '' : 'ratio', $pb.PbFieldType.OF)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Media clone() => Media()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Media copyWith(void Function(Media) updates) =>
+      super.copyWith((message) => updates(message as Media)) as Media;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Media create() => Media._();
+  @$core.override
+  Media createEmptyInstance() => create();
+  static $pb.PbList<Media> createRepeated() => $pb.PbList<Media>();
+  @$core.pragma('dart2js:noInline')
+  static Media getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Media>(create);
+  static Media? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get url => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set url($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUrl() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUrl() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get ratio => $_getN(1);
+  @$pb.TagNumber(2)
+  set ratio($core.double value) => $_setFloat(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRatio() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRatio() => $_clearField(2);
 }
 
 class Post extends $pb.GeneratedMessage {
   factory Post({
     $core.String? title,
-    $core.String? directLink,
-    $core.Iterable<$core.String>? gallery,
+    Media? directLink,
+    $core.Iterable<Media>? gallery,
     $core.String? redditId,
     $core.String? subreddit,
     $fixnum.Int64? redditCreated,
@@ -338,8 +415,10 @@ class Post extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'posts.v1'),
       createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'title')
-    ..aOS(2, _omitFieldNames ? '' : 'directLink', protoName: 'directLink')
-    ..pPS(3, _omitFieldNames ? '' : 'gallery')
+    ..aOM<Media>(2, _omitFieldNames ? '' : 'directLink',
+        protoName: 'directLink', subBuilder: Media.create)
+    ..pc<Media>(3, _omitFieldNames ? '' : 'gallery', $pb.PbFieldType.PM,
+        subBuilder: Media.create)
     ..aOS(4, _omitFieldNames ? '' : 'redditId', protoName: 'redditId')
     ..aOS(5, _omitFieldNames ? '' : 'subreddit')
     ..aInt64(6, _omitFieldNames ? '' : 'RedditCreated',
@@ -375,16 +454,18 @@ class Post extends $pb.GeneratedMessage {
   void clearTitle() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get directLink => $_getSZ(1);
+  Media get directLink => $_getN(1);
   @$pb.TagNumber(2)
-  set directLink($core.String value) => $_setString(1, value);
+  set directLink(Media value) => $_setField(2, value);
   @$pb.TagNumber(2)
   $core.bool hasDirectLink() => $_has(1);
   @$pb.TagNumber(2)
   void clearDirectLink() => $_clearField(2);
+  @$pb.TagNumber(2)
+  Media ensureDirectLink() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  $pb.PbList<$core.String> get gallery => $_getList(2);
+  $pb.PbList<Media> get gallery => $_getList(2);
 
   @$pb.TagNumber(4)
   $core.String get redditId => $_getSZ(3);

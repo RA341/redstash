@@ -5,6 +5,7 @@ go 1.25
 require (
 	connectrpc.com/connect v1.19.1
 	connectrpc.com/cors v0.1.0
+	github.com/abema/go-mp4 v1.4.1
 	github.com/rs/cors v1.11.1
 	github.com/rs/zerolog v1.34.0
 	golang.org/x/net v0.46.0
@@ -16,6 +17,7 @@ require (
 )
 
 require (
+	github.com/google/uuid v1.1.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect

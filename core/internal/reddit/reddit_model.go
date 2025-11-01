@@ -27,6 +27,8 @@ type PostStore interface {
 	ListDownloaded(offset, limit int, result *[]Post, accountID int) error
 	ListError(offset, limit int, result *[]Post, accountID int) error
 
+	UpdateVideoRatio(post *Post) error
+
 	ClearDownloadData() error
 }
 
@@ -36,9 +38,10 @@ type Post struct {
 	UserCredentialID uint       `gorm:"index;column:user_credential_id"`
 	Credential       Credential `gorm:"foreignKey:UserCredentialID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
-	RedditId  string `gorm:"uniqueIndex"`
-	MediaType MediaType
-	Data      []byte `gorm:"type:text"`
+	RedditId            string `gorm:"uniqueIndex"`
+	MediaType           MediaType
+	Data                []byte `gorm:"type:text"`
+	VideoDimensionRatio float32
 
 	PermLink      string
 	Subreddit     string

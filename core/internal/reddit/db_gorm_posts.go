@@ -13,6 +13,15 @@ func NewGormPostStore(db *gorm.DB) PostStore {
 	return &GormPostStore{db: db}
 }
 
+func (g *GormPostStore) UpdateVideoRatio(post *Post) error {
+	return g.db.Model(&post).
+		Update(
+			"video_dimension_ratio",
+			post.VideoDimensionRatio,
+		).
+		Error
+}
+
 func (g *GormPostStore) ListDownloaded(offset, limit int, result *[]Post, accountID int) error {
 	return g.loadPostsByLastUpdated(offset, limit, accountID).
 		Where("download_data IS NOT NULL OR download_data != ?", "").

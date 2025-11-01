@@ -127,7 +127,7 @@ func (x *ListDownloadedResponse) GetPosts() []*Post {
 
 type Gallery struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Images        []string               `protobuf:"bytes,1,rep,name=images,proto3" json:"images,omitempty"`
+	Images        []*Media               `protobuf:"bytes,1,rep,name=images,proto3" json:"images,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -162,7 +162,7 @@ func (*Gallery) Descriptor() ([]byte, []int) {
 	return file_posts_v1_posts_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *Gallery) GetImages() []string {
+func (x *Gallery) GetImages() []*Media {
 	if x != nil {
 		return x.Images
 	}
@@ -171,7 +171,7 @@ func (x *Gallery) GetImages() []string {
 
 type Image struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Image         string                 `protobuf:"bytes,1,opt,name=image,proto3" json:"image,omitempty"`
+	Image         *Media                 `protobuf:"bytes,1,opt,name=image,proto3" json:"image,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -206,16 +206,16 @@ func (*Image) Descriptor() ([]byte, []int) {
 	return file_posts_v1_posts_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *Image) GetImage() string {
+func (x *Image) GetImage() *Media {
 	if x != nil {
 		return x.Image
 	}
-	return ""
+	return nil
 }
 
 type Video struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Video         []string               `protobuf:"bytes,1,rep,name=video,proto3" json:"video,omitempty"`
+	Video         *Media                 `protobuf:"bytes,1,opt,name=video,proto3" json:"video,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -250,28 +250,80 @@ func (*Video) Descriptor() ([]byte, []int) {
 	return file_posts_v1_posts_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *Video) GetVideo() []string {
+func (x *Video) GetVideo() *Media {
 	if x != nil {
 		return x.Video
 	}
 	return nil
 }
 
+type Media struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Url           string                 `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	Ratio         float32                `protobuf:"fixed32,2,opt,name=ratio,proto3" json:"ratio,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Media) Reset() {
+	*x = Media{}
+	mi := &file_posts_v1_posts_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Media) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Media) ProtoMessage() {}
+
+func (x *Media) ProtoReflect() protoreflect.Message {
+	mi := &file_posts_v1_posts_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Media.ProtoReflect.Descriptor instead.
+func (*Media) Descriptor() ([]byte, []int) {
+	return file_posts_v1_posts_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Media) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *Media) GetRatio() float32 {
+	if x != nil {
+		return x.Ratio
+	}
+	return 0
+}
+
 type Post struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	DirectLink    string                 `protobuf:"bytes,2,opt,name=directLink,proto3" json:"directLink,omitempty"`
-	Gallery       []string               `protobuf:"bytes,3,rep,name=gallery,proto3" json:"gallery,omitempty"`
 	RedditId      string                 `protobuf:"bytes,4,opt,name=redditId,proto3" json:"redditId,omitempty"`
 	Subreddit     string                 `protobuf:"bytes,5,opt,name=subreddit,proto3" json:"subreddit,omitempty"`
 	RedditCreated int64                  `protobuf:"varint,6,opt,name=RedditCreated,proto3" json:"RedditCreated,omitempty"`
+	DirectLink    *Media                 `protobuf:"bytes,2,opt,name=directLink,proto3" json:"directLink,omitempty"`
+	Gallery       []*Media               `protobuf:"bytes,3,rep,name=gallery,proto3" json:"gallery,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Post) Reset() {
 	*x = Post{}
-	mi := &file_posts_v1_posts_proto_msgTypes[5]
+	mi := &file_posts_v1_posts_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -283,7 +335,7 @@ func (x *Post) String() string {
 func (*Post) ProtoMessage() {}
 
 func (x *Post) ProtoReflect() protoreflect.Message {
-	mi := &file_posts_v1_posts_proto_msgTypes[5]
+	mi := &file_posts_v1_posts_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -296,7 +348,7 @@ func (x *Post) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Post.ProtoReflect.Descriptor instead.
 func (*Post) Descriptor() ([]byte, []int) {
-	return file_posts_v1_posts_proto_rawDescGZIP(), []int{5}
+	return file_posts_v1_posts_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Post) GetTitle() string {
@@ -304,20 +356,6 @@ func (x *Post) GetTitle() string {
 		return x.Title
 	}
 	return ""
-}
-
-func (x *Post) GetDirectLink() string {
-	if x != nil {
-		return x.DirectLink
-	}
-	return ""
-}
-
-func (x *Post) GetGallery() []string {
-	if x != nil {
-		return x.Gallery
-	}
-	return nil
 }
 
 func (x *Post) GetRedditId() string {
@@ -341,6 +379,20 @@ func (x *Post) GetRedditCreated() int64 {
 	return 0
 }
 
+func (x *Post) GetDirectLink() *Media {
+	if x != nil {
+		return x.DirectLink
+	}
+	return nil
+}
+
+func (x *Post) GetGallery() []*Media {
+	if x != nil {
+		return x.Gallery
+	}
+	return nil
+}
+
 var File_posts_v1_posts_proto protoreflect.FileDescriptor
 
 const file_posts_v1_posts_proto_rawDesc = "" +
@@ -351,22 +403,25 @@ const file_posts_v1_posts_proto_rawDesc = "" +
 	"\x05limit\x18\x02 \x01(\x04R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x03 \x01(\x04R\x06offset\">\n" +
 	"\x16ListDownloadedResponse\x12$\n" +
-	"\x05posts\x18\x01 \x03(\v2\x0e.posts.v1.PostR\x05posts\"!\n" +
-	"\aGallery\x12\x16\n" +
-	"\x06images\x18\x01 \x03(\tR\x06images\"\x1d\n" +
-	"\x05Image\x12\x14\n" +
-	"\x05image\x18\x01 \x01(\tR\x05image\"\x1d\n" +
-	"\x05Video\x12\x14\n" +
-	"\x05video\x18\x01 \x03(\tR\x05video\"\xb6\x01\n" +
+	"\x05posts\x18\x01 \x03(\v2\x0e.posts.v1.PostR\x05posts\"2\n" +
+	"\aGallery\x12'\n" +
+	"\x06images\x18\x01 \x03(\v2\x0f.posts.v1.MediaR\x06images\".\n" +
+	"\x05Image\x12%\n" +
+	"\x05image\x18\x01 \x01(\v2\x0f.posts.v1.MediaR\x05image\".\n" +
+	"\x05Video\x12%\n" +
+	"\x05video\x18\x01 \x01(\v2\x0f.posts.v1.MediaR\x05video\"/\n" +
+	"\x05Media\x12\x10\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\x12\x14\n" +
+	"\x05ratio\x18\x02 \x01(\x02R\x05ratio\"\xd8\x01\n" +
 	"\x04Post\x12\x14\n" +
-	"\x05title\x18\x01 \x01(\tR\x05title\x12\x1e\n" +
-	"\n" +
-	"directLink\x18\x02 \x01(\tR\n" +
-	"directLink\x12\x18\n" +
-	"\agallery\x18\x03 \x03(\tR\agallery\x12\x1a\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\x12\x1a\n" +
 	"\bredditId\x18\x04 \x01(\tR\bredditId\x12\x1c\n" +
 	"\tsubreddit\x18\x05 \x01(\tR\tsubreddit\x12$\n" +
-	"\rRedditCreated\x18\x06 \x01(\x03R\rRedditCreated2e\n" +
+	"\rRedditCreated\x18\x06 \x01(\x03R\rRedditCreated\x12/\n" +
+	"\n" +
+	"directLink\x18\x02 \x01(\v2\x0f.posts.v1.MediaR\n" +
+	"directLink\x12)\n" +
+	"\agallery\x18\x03 \x03(\v2\x0f.posts.v1.MediaR\agallery2e\n" +
 	"\fPostsService\x12U\n" +
 	"\x0eListDownloaded\x12\x1f.posts.v1.ListDownloadedRequest\x1a .posts.v1.ListDownloadedResponse\"\x00B\x89\x01\n" +
 	"\fcom.posts.v1B\n" +
@@ -384,24 +439,30 @@ func file_posts_v1_posts_proto_rawDescGZIP() []byte {
 	return file_posts_v1_posts_proto_rawDescData
 }
 
-var file_posts_v1_posts_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_posts_v1_posts_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_posts_v1_posts_proto_goTypes = []any{
 	(*ListDownloadedRequest)(nil),  // 0: posts.v1.ListDownloadedRequest
 	(*ListDownloadedResponse)(nil), // 1: posts.v1.ListDownloadedResponse
 	(*Gallery)(nil),                // 2: posts.v1.Gallery
 	(*Image)(nil),                  // 3: posts.v1.Image
 	(*Video)(nil),                  // 4: posts.v1.Video
-	(*Post)(nil),                   // 5: posts.v1.Post
+	(*Media)(nil),                  // 5: posts.v1.Media
+	(*Post)(nil),                   // 6: posts.v1.Post
 }
 var file_posts_v1_posts_proto_depIdxs = []int32{
-	5, // 0: posts.v1.ListDownloadedResponse.posts:type_name -> posts.v1.Post
-	0, // 1: posts.v1.PostsService.ListDownloaded:input_type -> posts.v1.ListDownloadedRequest
-	1, // 2: posts.v1.PostsService.ListDownloaded:output_type -> posts.v1.ListDownloadedResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	6, // 0: posts.v1.ListDownloadedResponse.posts:type_name -> posts.v1.Post
+	5, // 1: posts.v1.Gallery.images:type_name -> posts.v1.Media
+	5, // 2: posts.v1.Image.image:type_name -> posts.v1.Media
+	5, // 3: posts.v1.Video.video:type_name -> posts.v1.Media
+	5, // 4: posts.v1.Post.directLink:type_name -> posts.v1.Media
+	5, // 5: posts.v1.Post.gallery:type_name -> posts.v1.Media
+	0, // 6: posts.v1.PostsService.ListDownloaded:input_type -> posts.v1.ListDownloadedRequest
+	1, // 7: posts.v1.PostsService.ListDownloaded:output_type -> posts.v1.ListDownloadedResponse
+	7, // [7:8] is the sub-list for method output_type
+	6, // [6:7] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_posts_v1_posts_proto_init() }
@@ -415,7 +476,7 @@ func file_posts_v1_posts_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_posts_v1_posts_proto_rawDesc), len(file_posts_v1_posts_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

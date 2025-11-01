@@ -30,6 +30,18 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        getByName("debug") {
+            val keystoreFile = file(System.getenv("REDSTASH_KEYSTORE_FILE") ?: "debug.keystore")
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = System.getenv("REDSTASH_KEYSTORE_PASSWORD") ?: "android"
+                keyAlias = System.getenv("REDSTASH_KEY_ALIAS") ?: "androiddebugkey"
+                keyPassword = System.getenv("REDSTASH_KEY_PASSWORD") ?: "android"
+            }
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.

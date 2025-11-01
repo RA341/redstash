@@ -19,8 +19,8 @@ tasks:
     cmds:
       - keytool -genkeypair
         -v
-        -keystore key.jks
-        -alias my-key-alias
+        -keystore android.keystore
+        -alias redstash
         -keyalg RSA
         -keysize 2048
         -validity 10000
@@ -29,4 +29,5 @@ tasks:
   dk:
     cmds:
       - docker build . -t {{ .IMAGE_BASE }}:dev
-      - docker run -p 8550:8558 {{ .IMAGE_BASE }}:dev
+      - docker run -p 8550:8558
+          {{ .IMAGE_BASE }}:dev

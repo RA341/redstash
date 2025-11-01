@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/RA341/redstash/internal/auth"
 	"github.com/RA341/redstash/internal/reddit"
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/sqlite"
@@ -57,6 +58,8 @@ func NewDB(basepath string) *gorm.DB {
 	tables := []interface{}{
 		&reddit.Post{},
 		&reddit.Credential{},
+		&auth.User{},
+		&auth.Sessions{},
 	}
 	if err = gormDB.AutoMigrate(tables...); err != nil {
 		log.Fatal().Err(err).Msg("failed to auto migrate DB")

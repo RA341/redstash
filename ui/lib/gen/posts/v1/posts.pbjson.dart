@@ -54,57 +54,105 @@ final $typed_data.Uint8List listDownloadedResponseDescriptor =
 const Gallery$json = {
   '1': 'Gallery',
   '2': [
-    {'1': 'images', '3': 1, '4': 3, '5': 9, '10': 'images'},
+    {
+      '1': 'images',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.posts.v1.Media',
+      '10': 'images'
+    },
   ],
 };
 
 /// Descriptor for `Gallery`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List galleryDescriptor =
-    $convert.base64Decode('CgdHYWxsZXJ5EhYKBmltYWdlcxgBIAMoCVIGaW1hZ2Vz');
+final $typed_data.Uint8List galleryDescriptor = $convert.base64Decode(
+    'CgdHYWxsZXJ5EicKBmltYWdlcxgBIAMoCzIPLnBvc3RzLnYxLk1lZGlhUgZpbWFnZXM=');
 
 @$core.Deprecated('Use imageDescriptor instead')
 const Image$json = {
   '1': 'Image',
   '2': [
-    {'1': 'image', '3': 1, '4': 1, '5': 9, '10': 'image'},
+    {
+      '1': 'image',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.posts.v1.Media',
+      '10': 'image'
+    },
   ],
 };
 
 /// Descriptor for `Image`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List imageDescriptor =
-    $convert.base64Decode('CgVJbWFnZRIUCgVpbWFnZRgBIAEoCVIFaW1hZ2U=');
+final $typed_data.Uint8List imageDescriptor = $convert.base64Decode(
+    'CgVJbWFnZRIlCgVpbWFnZRgBIAEoCzIPLnBvc3RzLnYxLk1lZGlhUgVpbWFnZQ==');
 
 @$core.Deprecated('Use videoDescriptor instead')
 const Video$json = {
   '1': 'Video',
   '2': [
-    {'1': 'video', '3': 1, '4': 3, '5': 9, '10': 'video'},
+    {
+      '1': 'video',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.posts.v1.Media',
+      '10': 'video'
+    },
   ],
 };
 
 /// Descriptor for `Video`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List videoDescriptor =
-    $convert.base64Decode('CgVWaWRlbxIUCgV2aWRlbxgBIAMoCVIFdmlkZW8=');
+final $typed_data.Uint8List videoDescriptor = $convert.base64Decode(
+    'CgVWaWRlbxIlCgV2aWRlbxgBIAEoCzIPLnBvc3RzLnYxLk1lZGlhUgV2aWRlbw==');
+
+@$core.Deprecated('Use mediaDescriptor instead')
+const Media$json = {
+  '1': 'Media',
+  '2': [
+    {'1': 'url', '3': 1, '4': 1, '5': 9, '10': 'url'},
+    {'1': 'ratio', '3': 2, '4': 1, '5': 2, '10': 'ratio'},
+  ],
+};
+
+/// Descriptor for `Media`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List mediaDescriptor = $convert.base64Decode(
+    'CgVNZWRpYRIQCgN1cmwYASABKAlSA3VybBIUCgVyYXRpbxgCIAEoAlIFcmF0aW8=');
 
 @$core.Deprecated('Use postDescriptor instead')
 const Post$json = {
   '1': 'Post',
   '2': [
     {'1': 'title', '3': 1, '4': 1, '5': 9, '10': 'title'},
-    {'1': 'directLink', '3': 2, '4': 1, '5': 9, '10': 'directLink'},
-    {'1': 'gallery', '3': 3, '4': 3, '5': 9, '10': 'gallery'},
     {'1': 'redditId', '3': 4, '4': 1, '5': 9, '10': 'redditId'},
     {'1': 'subreddit', '3': 5, '4': 1, '5': 9, '10': 'subreddit'},
     {'1': 'RedditCreated', '3': 6, '4': 1, '5': 3, '10': 'RedditCreated'},
+    {
+      '1': 'directLink',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.posts.v1.Media',
+      '10': 'directLink'
+    },
+    {
+      '1': 'gallery',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.posts.v1.Media',
+      '10': 'gallery'
+    },
   ],
 };
 
 /// Descriptor for `Post`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List postDescriptor = $convert.base64Decode(
-    'CgRQb3N0EhQKBXRpdGxlGAEgASgJUgV0aXRsZRIeCgpkaXJlY3RMaW5rGAIgASgJUgpkaXJlY3'
-    'RMaW5rEhgKB2dhbGxlcnkYAyADKAlSB2dhbGxlcnkSGgoIcmVkZGl0SWQYBCABKAlSCHJlZGRp'
-    'dElkEhwKCXN1YnJlZGRpdBgFIAEoCVIJc3VicmVkZGl0EiQKDVJlZGRpdENyZWF0ZWQYBiABKA'
-    'NSDVJlZGRpdENyZWF0ZWQ=');
+    'CgRQb3N0EhQKBXRpdGxlGAEgASgJUgV0aXRsZRIaCghyZWRkaXRJZBgEIAEoCVIIcmVkZGl0SW'
+    'QSHAoJc3VicmVkZGl0GAUgASgJUglzdWJyZWRkaXQSJAoNUmVkZGl0Q3JlYXRlZBgGIAEoA1IN'
+    'UmVkZGl0Q3JlYXRlZBIvCgpkaXJlY3RMaW5rGAIgASgLMg8ucG9zdHMudjEuTWVkaWFSCmRpcm'
+    'VjdExpbmsSKQoHZ2FsbGVyeRgDIAMoCzIPLnBvc3RzLnYxLk1lZGlhUgdnYWxsZXJ5');
 
 const $core.Map<$core.String, $core.dynamic> PostsServiceBase$json = {
   '1': 'PostsService',
@@ -124,6 +172,7 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>>
   '.posts.v1.ListDownloadedRequest': ListDownloadedRequest$json,
   '.posts.v1.ListDownloadedResponse': ListDownloadedResponse$json,
   '.posts.v1.Post': Post$json,
+  '.posts.v1.Media': Media$json,
 };
 
 /// Descriptor for `PostsService`. Decode as a `google.protobuf.ServiceDescriptorProto`.

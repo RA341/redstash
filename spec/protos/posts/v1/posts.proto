@@ -20,22 +20,28 @@ message ListDownloadedResponse {
 }
 
 message Gallery {
-  repeated string images = 1;
+  repeated Media images = 1;
 }
 
 message Image {
-  string image = 1;
+  Media image = 1;
 }
 
 message Video {
-  repeated string video = 1;
+  Media video = 1;
+}
+
+message Media {
+  string url = 1;
+  float ratio = 2;
 }
 
 message Post {
   string title = 1;
-  string directLink = 2;
-  repeated string gallery = 3;
   string redditId = 4;
   string subreddit = 5;
   int64 RedditCreated = 6;
+
+  Media directLink = 2;
+  repeated Media gallery = 3;
 }

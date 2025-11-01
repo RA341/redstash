@@ -2,13 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:media_kit/media_kit.dart';
+import 'package:media_kit/media_kit.dart' as mkit;
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:redstash/config/config.dart';
 import 'package:redstash/gen/posts/v1/posts.pb.dart' hide Image, Video;
 import 'package:redstash/providers/account.dart';
 import 'package:redstash/providers/posts.dart';
 import 'package:redstash/utils/error_display.dart';
+import 'package:redstash/utils/loading_widget.dart';
 
 class PostList extends ConsumerWidget {
   const PostList({super.key});
@@ -17,28 +18,63 @@ class PostList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activeAccount = ref.watch(activeAccountProvider);
     if (activeAccount == null) {
-      return Center(child: Text("Please select an account from the dropdown"));
+      return const Center(
+        child: Text("Please select an account from the dropdown"),
+      );
     }
 
-    final postList = ref.watch(postListProvider(activeAccount));
+    final postListAsyncValue = ref.watch(postListProvider(activeAccount));
+    final postListNotifier = ref.read(postListProvider(activeAccount).notifier);
 
-    return postList.when(
-      data: (data) {
-        if (data.isEmpty) {
-          return Center(child: Text("No posts found"));
+    return postListAsyncValue.when(
+      data: (paginatedData) {
+        final posts = paginatedData;
+
+        if (posts.isEmpty) {
+          return const Center(child: Text("No posts found"));
         }
 
-        return ListView.builder(
-          itemCount: data.length,
-          itemBuilder: (context, index) => PostCard(post: data[index]),
+        return NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            // Check if user is near the end of the list
+            final metrics = scrollInfo.metrics;
+            if (metrics.pixels >= metrics.maxScrollExtent * 0.9 &&
+                // todo last page
+                // !isLastPage && // Don't load if we know it's the last page
+                // Don't load if already loading
+                !postListAsyncValue.isLoading) {
+              postListNotifier.forward();
+            }
+            return false; // Allow the notification to continue to bubble up
+          },
+          child: ListView.builder(
+            // +1 for the loading indicator/footer if not on the last page
+            itemCount: posts.length + (1),
+            itemBuilder: (context, index) {
+              // --- Last item is the loading indicator ---
+              if (index == posts.length) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              // --- Regular post item ---
+              return PostCard(post: posts[index]);
+            },
+          ),
         );
       },
       error: (error, stackTrace) => Center(
         child: Column(
-          children: [Text("Error fetching posts"), Text(error.toString())],
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("Error fetching initial posts"),
+            Text(error.toString()),
+          ],
         ),
       ),
-      loading: () => Center(child: CircularProgressIndicator()),
+
+      loading: () => const Center(child: CircularProgressIndicator()),
     );
   }
 }
@@ -50,26 +86,28 @@ class PostCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final basePath = ref.watch(localSettingsProvider).basepath;
-
     final isGallery = post.gallery.isNotEmpty;
-    final isVideo = !isGallery && (post.directLink.endsWith(".mp4"));
+    final isVideo = !isGallery && (post.directLink.url.endsWith(".mp4"));
+
+    var widgetRatio = 16 / 9;
 
     final Widget displayWidget;
+    if (isGallery) {
+      displayWidget = GalleryPostView(post: post, gallery: post.gallery);
 
-    if (isVideo) {
-      String fullMediaUrl = getUrl(basePath: basePath, link: post.directLink);
-      displayWidget = VideoPlayer(videoLink: fullMediaUrl);
-    } else if (isGallery) {
-      displayWidget = GalleryWidget(gallery: post.gallery);
+      if (post.gallery.first.hasRatio()) {
+        widgetRatio = post.gallery.first.ratio;
+      }
     } else {
-      displayWidget = ImageWidget(url: post.directLink);
+      if (isVideo) {
+        displayWidget = VideoPostView(post: post, videoLink: post.directLink);
+      } else {
+        displayWidget = ImagePostView(post: post, media: post.directLink);
+      }
+      if (post.directLink.hasRatio()) {
+        widgetRatio = post.directLink.ratio;
+      }
     }
-
-    // 1. Get screen height and calculate max height
-    final screenHeight = MediaQuery.of(context).size.height;
-    // 0.7 * screenHeight is 70% of the screen height
-    final maxHeight = screenHeight * 0.7;
 
     return Card(
       child: Padding(
@@ -88,14 +126,13 @@ class PostCard extends ConsumerWidget {
                 ),
               ),
             ),
-            Align(alignment: Alignment.topCenter, child: displayWidget),
-            // ConstrainedBox(
-            //   constraints: BoxConstraints(maxHeight: maxHeight),
-            //   child: Align(
-            //     alignment: Alignment.topCenter,
-            //     child: displayWidget,
-            //   ),
-            // ),
+            Align(
+              alignment: Alignment.topCenter,
+              child: AspectRatio(
+                aspectRatio: widgetRatio,
+                child: displayWidget,
+              ),
+            ),
           ],
         ),
       ),
@@ -103,16 +140,17 @@ class PostCard extends ConsumerWidget {
   }
 }
 
-class GalleryWidget extends StatefulWidget {
-  const GalleryWidget({super.key, required this.gallery});
+class GalleryPostView extends StatefulWidget {
+  const GalleryPostView({super.key, required this.gallery, required this.post});
 
-  final List<String> gallery;
+  final List<Media> gallery;
+  final Post post;
 
   @override
-  State<GalleryWidget> createState() => _GalleryWidgetState();
+  State<GalleryPostView> createState() => _GalleryPostViewState();
 }
 
-class _GalleryWidgetState extends State<GalleryWidget> {
+class _GalleryPostViewState extends State<GalleryPostView> {
   late final PageController controller;
 
   @override
@@ -137,7 +175,9 @@ class _GalleryWidgetState extends State<GalleryWidget> {
           PageView(
             physics: const ClampingScrollPhysics(),
             controller: controller,
-            children: widget.gallery.map((e) => ImageWidget(url: e)).toList(),
+            children: widget.gallery
+                .map((e) => ImagePostView(post: widget.post, media: e))
+                .toList(),
           ),
 
           Align(
@@ -180,19 +220,19 @@ class _GalleryWidgetState extends State<GalleryWidget> {
   }
 }
 
-class ImageWidget extends ConsumerWidget {
-  const ImageWidget({required this.url, super.key});
+class ImagePostView extends ConsumerWidget {
+  const ImagePostView({required this.post, required this.media, super.key});
 
-  final String url;
+  final Post post;
+  final Media media;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final basePath = ref.watch(localSettingsProvider).basepath;
-
-    var fullUrl = getUrl(basePath: basePath, link: url);
+    late final base = ref.watch(localSettingsProvider).basepath;
+    final url = getUrl(basePath: base, link: media.url);
 
     return Image.network(
-      fullUrl,
+      url,
       fit: BoxFit.contain,
       alignment: Alignment.center,
       loadingBuilder:
@@ -212,70 +252,52 @@ class ImageWidget extends ConsumerWidget {
 
             return Center(child: CircularProgressIndicator(value: progress));
           },
-      errorBuilder: (context, error, stackTrace) => ErrorDisplay(
-        title: "Unable to fetch image",
-        error: error.toString(),
-        stacktrace: stackTrace.toString(),
-      ),
+      errorBuilder: (context, error, stackTrace) {
+        return ErrorDisplay(
+          title: "Unable to fetch image",
+          error: error.toString(),
+          stacktrace: stackTrace.toString(),
+        );
+      },
     );
   }
 }
 
 // todo pause/unpause on hide
 // custom controls
-class VideoPlayer extends StatefulWidget {
-  const VideoPlayer({super.key, required this.videoLink});
+class VideoPostView extends ConsumerStatefulWidget {
+  const VideoPostView({required this.post, required this.videoLink, super.key});
 
-  final String videoLink;
+  final Post post;
+  final Media videoLink;
 
   @override
-  State<VideoPlayer> createState() => VideoPlayerState();
+  ConsumerState createState() => _VideoPostWidgetState();
 }
 
-class VideoPlayerState extends State<VideoPlayer> {
-  late final player = Player(
-    configuration: PlayerConfiguration(muted: kDebugMode),
+class _VideoPostWidgetState extends ConsumerState<VideoPostView> {
+  late final player = mkit.Player(
+    configuration: mkit.PlayerConfiguration(muted: kDebugMode),
   );
 
   late final controller = VideoController(player);
 
+  late final base = ref.read(localSettingsProvider).basepath;
+
   @override
   void initState() {
     super.initState();
-    player.open(Media(widget.videoLink));
-  }
 
-  var videoRatio = 16 / 9;
+    final url = getUrl(basePath: base, link: widget.videoLink.url);
+    player.open(mkit.Media(url));
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: controller.rect,
-      builder: (context, value, child) {
-        if (value != null) {
-          // todo precompute aspect ratio
-          videoRatio = value.width / value.height >= 1.0
-              // Landscape or square (Wider than 1:1, so we set a standard 16:9)
-              ? 16 / 9
-              // Portrait or Taller (Taller than 1:1, so we set a standard 4:5)
-              : 4 / 5;
-
-          // logger.i("Target: $videoRatio");
-        }
-
-        return Column(
-          children: [
-            AspectRatio(
-              aspectRatio: videoRatio,
-              child: Video(
-                controller: controller,
-                pauseUponEnteringBackgroundMode: true,
-                wakelock: true,
-              ),
-            ),
-          ],
-        );
-      },
+    return Video(
+      controller: controller,
+      pauseUponEnteringBackgroundMode: true,
+      wakelock: true,
     );
   }
 
@@ -287,4 +309,4 @@ class VideoPlayerState extends State<VideoPlayer> {
 }
 
 String getUrl({required String basePath, required String link}) =>
-    "${kIsWeb ? "" : basePath}/api/posts/$link";
+    "${kIsWeb ? "" : basePath}api/posts/$link";

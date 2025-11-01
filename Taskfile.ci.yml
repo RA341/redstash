@@ -1,0 +1,43 @@
+version: '3'
+
+vars:
+  CORE_DIR: core/
+  UI_DIR: ui/
+  IMAGE_BASE: redstash
+  # Directory for Go source commands
+  GO_CMD_DIR: cmd
+  # Directory for build output
+  BUILD_DIR: build
+
+tasks:
+  default:
+    desc: "Lists all available tasks"
+    cmds:
+      - task --list --sort=alphanumeric
+
+  apksign:
+    desc: Load keystore for signing
+
+  dkarc:*:
+    desc: Build docker for a arch
+    vars:
+      IMAGE: '{{index .MATCH 0}}'
+    cmds:
+      - docker build . -t IMAGE
+
+  apk:*:
+    desc: build android apk
+    dir: ui
+    vars:
+      COMMIT_HASH:
+        sh: git rev-parse HEAD
+      COMMIT_COUNT:
+        sh: git rev-list --count HEAD
+      VERSION: '{{index .MATCH 0}}+{{.COMMIT_COUNT}}'
+    env:
+      DEBUG_KEYSTORE_PASSWORD: "android"
+      DEBUG_KEY_ALIAS: "androiddebugkey"
+      DEBUG_KEY_PASSWORD: "android"
+    cmds:
+      - flutter build apk --release
+          --build-name={{.VERSION}}

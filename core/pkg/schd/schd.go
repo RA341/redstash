@@ -64,9 +64,7 @@ func (s *Scheduler) Start() {
 }
 
 func (s *Scheduler) loop() {
-	interval := s.interval
-
-	ticker := time.NewTicker(interval)
+	ticker := time.NewTicker(s.interval)
 	defer ticker.Stop()
 	for {
 		select {

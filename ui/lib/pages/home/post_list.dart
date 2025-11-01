@@ -29,6 +29,7 @@ class PostList extends ConsumerWidget {
     return postListAsyncValue.when(
       data: (paginatedData) {
         final posts = paginatedData;
+        final isLastPage = paginatedData.length < postListNotifier.limit;
 
         if (posts.isEmpty) {
           return const Center(child: Text("No posts found"));
@@ -39,8 +40,7 @@ class PostList extends ConsumerWidget {
             // Check if user is near the end of the list
             final metrics = scrollInfo.metrics;
             if (metrics.pixels >= metrics.maxScrollExtent * 0.9 &&
-                // todo last page
-                // !isLastPage && // Don't load if we know it's the last page
+                !isLastPage && // Don't load if we know it's the last page
                 // Don't load if already loading
                 !postListAsyncValue.isLoading) {
               postListNotifier.forward();
@@ -49,7 +49,7 @@ class PostList extends ConsumerWidget {
           },
           child: ListView.builder(
             // +1 for the loading indicator/footer if not on the last page
-            itemCount: posts.length + (1),
+            itemCount: posts.length + (isLastPage ? 0 : 1),
             itemBuilder: (context, index) {
               // --- Last item is the loading indicator ---
               if (index == posts.length) {

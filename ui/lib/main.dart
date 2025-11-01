@@ -1,14 +1,7 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
-import 'package:permission_handler/permission_handler.dart';
-
 import 'package:redstash/config/config.dart';
-import 'package:redstash/grpc/api.dart';
 import 'package:redstash/pages/auth/auth.dart';
 import 'package:redstash/pages/home/home.dart';
 import 'package:redstash/utils/error_display.dart';
@@ -37,7 +30,7 @@ class AppRoot extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.red,
+          seedColor: Color(0x20c3d0ff),
           brightness: Brightness.dark,
         ),
       ),

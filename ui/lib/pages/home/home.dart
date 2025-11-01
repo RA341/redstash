@@ -19,116 +19,123 @@ import 'package:redstash/utils/loading_widget.dart';
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
+  static const iconSize = 100.0;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accountList = ref.watch(credentialListProvider);
-
     return accountList.when(
-      data: (accounts) => Scaffold(
-        appBar: AppBar(
-          title: Text("Redstash", style: TextStyle(fontSize: 20)),
-          elevation: 10,
-          actionsPadding: EdgeInsets.symmetric(horizontal: 10),
-          actions: [
-            IconButton(
-              onPressed: () {
-                final activeAccount = ref.watch(activeAccountProvider);
-                if (activeAccount != null) {
-                  ref.invalidate(postListProvider(activeAccount));
-                }
-              },
-              icon: Icon(Icons.refresh),
+      data: (accounts) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Image.asset(
+              "assets/redstash.png",
+              // width: iconSize,
+              // height: iconSize,
             ),
-            SizedBox(
-              width: 170,
-              child: DropdownButton<int?>(
-                underline: Container(),
-                padding: EdgeInsets.all(10),
-                borderRadius: BorderRadius.all(Radius.circular(10)),
-                value: ref.watch(activeAccountProvider),
-                items: accounts
-                    .map(
-                      (e) => DropdownMenuItem(
-                        value: e.accountID,
-                        child: Text(e.account.username),
-                      ),
-                    )
-                    .toList(),
-                onChanged: ref.activeAccount.switchAccount,
-              ),
-            ),
-            SizedBox(width: 10),
-            IconButton(
-              onPressed: () async {
-                await showDialog(
-                  context: context,
-                  builder: (context) => AddAccountWidget(),
-                );
-              },
-              icon: Icon(Icons.add),
-            ),
-          ],
-        ),
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              AsyncButton(
-                loadingButton: Text("Syncing posts"),
-                normalButton: Text("Sync posts"),
-                icon: Icon(Icons.post_add, size: 25),
-                onPress: () async {
-                  final err = await runGrpcRequestErr(
-                    () => ref
-                        .read(credentialsApiProvider)
-                        .syncPosts(RunTaskRequest()),
-                  );
-
-                  if (!context.mounted) return;
-                  if (err != null) {
-                    await showErrorDialog(
-                      context: context,
-                      title: "Error running task",
-                      error: err,
-                    );
+            elevation: 10,
+            actionsPadding: EdgeInsets.symmetric(horizontal: 10),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  final activeAccount = ref.watch(activeAccountProvider);
+                  if (activeAccount != null) {
+                    ref.invalidate(postListProvider(activeAccount));
                   }
                 },
+                icon: Icon(Icons.refresh),
               ),
-              AsyncButton(
-                loadingButton: Text("Syncing downloads"),
-                normalButton: Text("Sync downloads"),
-                icon: Icon(Icons.post_add, size: 25),
-                onPress: () async {
-                  final err = await runGrpcRequestErr(
-                    () => ref
-                        .read(downloadApiProvider)
-                        .triggerDownloader(TriggerDownloaderRequest()),
+              SizedBox(
+                width: 170,
+                child: DropdownButton<int?>(
+                  underline: Container(),
+                  padding: EdgeInsets.all(10),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  value: ref.watch(activeAccountProvider),
+                  items: accounts
+                      .map(
+                        (e) => DropdownMenuItem(
+                          value: e.accountID,
+                          child: Text(e.account.username),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: ref.activeAccount.switchAccount,
+                ),
+              ),
+              SizedBox(width: 10),
+              IconButton(
+                onPressed: () async {
+                  await showDialog(
+                    context: context,
+                    builder: (context) => AddAccountWidget(),
                   );
-
-                  if (!context.mounted) return;
-                  if (err != null) {
-                    await showErrorDialog(
-                      context: context,
-                      title: "Error running task",
-                      error: err,
-                    );
-                  }
                 },
+                icon: Icon(Icons.add),
               ),
             ],
           ),
-        ),
-        body: RefreshIndicator(
-          onRefresh: () async {
-            final activeAccount = ref.watch(activeAccountProvider);
-            if (activeAccount != null) {
-              ref.invalidate(postListProvider(activeAccount));
-            }
-          },
-          child: PostTabView(),
-        ),
-      ),
+          bottomNavigationBar: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                AsyncButton(
+                  loadingButton: Text("Syncing posts"),
+                  normalButton: Text("Sync posts"),
+                  icon: Icon(Icons.post_add, size: 25),
+                  onPress: () async {
+                    final err = await runGrpcRequestErr(
+                      () => ref
+                          .read(credentialsApiProvider)
+                          .syncPosts(RunTaskRequest()),
+                    );
+
+                    if (!context.mounted) return;
+                    if (err != null) {
+                      await showErrorDialog(
+                        context: context,
+                        title: "Error running task",
+                        error: err,
+                      );
+                    }
+                  },
+                ),
+                AsyncButton(
+                  loadingButton: Text("Syncing downloads"),
+                  normalButton: Text("Sync downloads"),
+                  icon: Icon(Icons.post_add, size: 25),
+                  onPress: () async {
+                    final err = await runGrpcRequestErr(
+                      () => ref
+                          .read(downloadApiProvider)
+                          .triggerDownloader(TriggerDownloaderRequest()),
+                    );
+
+                    if (!context.mounted) return;
+                    if (err != null) {
+                      await showErrorDialog(
+                        context: context,
+                        title: "Error running task",
+                        error: err,
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          body: RefreshIndicator(
+            onRefresh: () async {
+              final activeAccount = ref.watch(activeAccountProvider);
+              if (activeAccount != null) {
+                ref.invalidate(postListProvider(activeAccount));
+              }
+            },
+            child: PostTabView(),
+          ),
+        );
+      },
       error: (error, stackTrace) => Scaffold(
         body: ErrorDisplay(
           title: "Error getting accounts",

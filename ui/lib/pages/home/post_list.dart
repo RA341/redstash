@@ -1,15 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:redstash/config/config.dart';
-import 'package:redstash/config/logger.dart';
 import 'package:redstash/gen/posts/v1/posts.pb.dart' hide Image, Video;
 import 'package:redstash/providers/account.dart';
 import 'package:redstash/providers/posts.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:redstash/utils/error_display.dart';
 
 class PostList extends ConsumerWidget {
@@ -289,4 +287,4 @@ class VideoPlayerState extends State<VideoPlayer> {
 }
 
 String getUrl({required String basePath, required String link}) =>
-    "$basePath/api/posts/$link";
+    "${kIsWeb ? "" : basePath}/api/posts/$link";

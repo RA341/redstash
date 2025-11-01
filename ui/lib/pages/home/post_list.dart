@@ -130,7 +130,7 @@ class PostCard extends ConsumerWidget {
               alignment: Alignment.topCenter,
               child: AspectRatio(
                 aspectRatio: widgetRatio,
-                child: displayWidget,
+                child: kDebugMode ? Placeholder() : displayWidget,
               ),
             ),
           ],

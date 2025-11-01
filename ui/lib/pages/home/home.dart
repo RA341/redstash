@@ -28,11 +28,7 @@ class HomePage extends ConsumerWidget {
       data: (accounts) {
         return Scaffold(
           appBar: AppBar(
-            title: Image.asset(
-              "assets/redstash.png",
-              // width: iconSize,
-              // height: iconSize,
-            ),
+            title: Image.asset("assets/redstash.png"),
             elevation: 10,
             actionsPadding: EdgeInsets.symmetric(horizontal: 10),
             actions: [
@@ -148,27 +144,60 @@ class HomePage extends ConsumerWidget {
   }
 }
 
+typedef TabData = (String, Widget);
+
 class PostTabView extends HookConsumerWidget {
   const PostTabView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tabList = [PostList(), ErrorList(), PendingList()];
+    final tabList = <TabData>[
+      ("Posts", PostList()),
+      ("Errors", ErrorList()),
+      ("Pending", PendingList()),
+    ];
 
-    final tab = useTabController(
+    final controller = useTabController(
       initialLength: tabList.length,
       initialIndex: 0,
     );
 
+    var primary = Colors.white;
+    var secondary = Color(0x0020c3d0);
     return Column(
       children: [
         TabBar(
-          padding: EdgeInsets.all(20),
-          controller: tab,
-          tabs: [Text("Downloaded"), Text("Error"), Text("Downloading")],
+          unselectedLabelColor: Theme.of(context).colorScheme.outline,
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicator: BoxDecoration(
+            // todo make indicator proper fill
+            //  fill i am too tired for this shit
+            gradient: LinearGradient(colors: [primary, primary]),
+            borderRadius: BorderRadius.circular(15),
+            color: secondary,
+          ),
+          dividerColor: Colors.transparent,
+          controller: controller,
+          tabs: tabList
+              .map(
+                (e) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 5,
+                  ),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Text(e.$1, style: TextStyle(fontSize: 17)),
+                  ),
+                ),
+              )
+              .toList(),
         ),
         Expanded(
-          child: TabBarView(controller: tab, children: tabList),
+          child: TabBarView(
+            controller: controller,
+            children: tabList.map((e) => e.$2).toList(),
+          ),
         ),
       ],
     );

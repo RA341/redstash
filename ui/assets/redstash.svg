@@ -10,7 +10,7 @@
    inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
    sodipodi:docname="redstash.svg"
    xml:space="preserve"
-   inkscape:export-filename="redstash.png"
+   inkscape:export-filename="..\..\assets\redstash.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -42,7 +42,10 @@
        id="g1"
        transform="matrix(7.4818856,0,0,7.4818856,-721.47421,-131.32268)"
        style="fill:#20c3d0;fill-opacity:1"
-       inkscape:label="vault"><g
+       inkscape:label="vault"
+       inkscape:export-filename="redstash.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><g
          id="g2"
          transform="translate(98.807018,20.360234)"
          style="fill:#20c3d0;fill-opacity:1"><path

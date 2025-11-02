@@ -29,7 +29,7 @@ func downloadGallery(post *reddit.Post, downloadDir string) error {
 		if err != nil {
 			return err
 		}
-		imgList.ImgList = append(imgList.ImgList, Image{filename})
+		imgList.ImgList = append(imgList.ImgList, Image{Path: filename})
 	}
 
 	return postDownloadFn(post, &imgList)

@@ -53,13 +53,16 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 		//}
 	}
 
+	tagService := posts.NewMediaMetadataService(postStore)
+	tagService.TagMedia()
+
 	// services
 	downloaderService := downloader.NewService(
 		func() *config.Downloader {
 			return &conf.Downloader
 		},
 		postStore,
-		postStore.Save,
+		tagService.TagMedia,
 	)
 
 	redditManager := reddit.NewManagerService(
@@ -68,7 +71,10 @@ func SetupApp(conf *config.AppConfig, mux *http.ServeMux) (*App, error) {
 		},
 		managerStore,
 		postStore,
-		downloaderService.Task.Manual,
+		func() {
+			downloaderService.Task.Manual()
+			tagService.TagMedia()
+		},
 	)
 	err := redditManager.LoadAllClients()
 	if err != nil {

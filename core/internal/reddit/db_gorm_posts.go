@@ -1,6 +1,8 @@
 package reddit
 
 import (
+	"fmt"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -9,32 +11,47 @@ type GormPostStore struct {
 	db *gorm.DB
 }
 
-func NewGormPostStore(db *gorm.DB) PostStore {
+func NewGormPostStore(db *gorm.DB) *GormPostStore {
 	return &GormPostStore{db: db}
 }
 
-func (g *GormPostStore) UpdateVideoRatio(post *Post) error {
-	return g.db.Model(&post).
-		Update(
-			"video_dimension_ratio",
-			post.VideoDimensionRatio,
-		).
-		Error
+func (g *GormPostStore) UpdateMetadata(post *Post) error {
+	if post.ID == 0 {
+		return fmt.Errorf("post id is zero")
+	}
+	return g.db.Save(post).Error
+}
+
+func (g *GormPostStore) ListNonTaggedPosts(limit int, posts []Post) ([]Post, error) {
+	tx := g.db.
+		Limit(limit).
+		Where("media_metadata_tagged = ?", false).
+		Where("download_data IS NOT NULL OR download_data != ?", "").
+		Where("media_type != ?", "unknown").
+		Find(&posts)
+	return posts, tx.Error
+
+}
+
+func (g *GormPostStore) SetAllToUntagged() error {
+	return g.db.
+		Where("media_metadata_tagged = ?", true).
+		Update("media_metadata_tagged", false).Error
 }
 
 func (g *GormPostStore) ListDownloaded(offset, limit int, result *[]Post, accountID int) error {
-	return g.loadPostsByLastUpdated(offset, limit, accountID).
+	return g.loadPostsByRedditCreatedUpdated(offset, limit, accountID).
 		Where("download_data IS NOT NULL OR download_data != ?", "").
 		Find(result).Error
 }
 
 func (g *GormPostStore) ListError(offset, limit int, result *[]Post, accountID int) error {
-	return g.loadPostsByLastUpdated(offset, limit, accountID).
+	return g.loadPostsByRedditCreatedUpdated(offset, limit, accountID).
 		Where("error_data IS NOT NULL OR error_data != ?", "").
 		Find(result).Error
 }
 
-func (g *GormPostStore) loadPostsByLastUpdated(offset int, limit int, accountID int) *gorm.DB {
+func (g *GormPostStore) loadPostsByRedditCreatedUpdated(offset int, limit int, accountID int) *gorm.DB {
 	return g.db.
 		Order("created_reddit desc").
 		Limit(limit).Offset(offset).
@@ -60,19 +77,6 @@ func (g *GormPostStore) ClearDownloadData() error {
 			"error_data":    nil,
 		}).
 		Error
-}
-
-func (g *GormPostStore) ListAll() ([]Post, error) {
-	var posts []Post
-	tx := g.db.Find(&posts)
-	return posts, tx.Error
-}
-
-func (g *GormPostStore) List(offset, limit int) ([]Post, error) {
-	var posts []Post
-	tx := g.db.Offset(offset).Limit(limit).Find(&posts)
-
-	return posts, tx.Error
 }
 
 func (g *GormPostStore) SaveAll(posts []Post) error {

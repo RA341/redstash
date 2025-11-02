@@ -22,12 +22,9 @@ type PostStore interface {
 	Save(post *Post) error
 	SaveAll(post []Post) error
 
-	ListAll() ([]Post, error)
 	ListNonDownloaded(limit int, result *[]Post) error
 	ListDownloaded(offset, limit int, result *[]Post, accountID int) error
 	ListError(offset, limit int, result *[]Post, accountID int) error
-
-	UpdateVideoRatio(post *Post) error
 
 	ClearDownloadData() error
 }
@@ -41,7 +38,7 @@ type Post struct {
 	RedditId            string `gorm:"uniqueIndex"`
 	MediaType           MediaType
 	Data                []byte `gorm:"type:text"`
-	VideoDimensionRatio float32
+	MediaMetadataTagged bool   `gorm:"default:false"`
 
 	PermLink      string
 	Subreddit     string

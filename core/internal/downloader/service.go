@@ -22,9 +22,10 @@ type Service struct {
 
 	updatePost UpdatePostFn
 
-	downloaderFnMap map[string]Downloader
-	triggerChan     chan struct{}
-	Task            *schd.Scheduler
+	downloaderFnMap  map[string]Downloader
+	triggerChan      chan struct{}
+	Task             *schd.Scheduler
+	postDownloaderFn func()
 }
 
 type ConfigProvider func() *config.Downloader
@@ -32,7 +33,7 @@ type ConfigProvider func() *config.Downloader
 func NewService(
 	conf ConfigProvider,
 	store reddit.PostStore,
-	updatePost UpdatePostFn,
+	postDownloaderFn func(),
 ) *Service {
 	client := NewClient()
 	err := client.Login()
@@ -49,11 +50,10 @@ func NewService(
 	}
 
 	s := &Service{
-		store: store,
-		conf:  conf,
-
-		updatePost:      updatePost,
-		downloaderFnMap: downloaderMap,
+		store:            store,
+		conf:             conf,
+		downloaderFnMap:  downloaderMap,
+		postDownloaderFn: postDownloaderFn,
 	}
 
 	s.Task = schd.NewScheduler(
@@ -83,6 +83,8 @@ func (s *Service) StartDownloader() {
 		log.Error().Err(err).Msg("failed to start downloader")
 	}
 
+	s.postDownloaderFn()
+
 	log.Info().Msg("downloader completed")
 }
 
@@ -91,7 +93,7 @@ func (s *Service) postProducer(postChannel chan *reddit.Post) error {
 
 	strikes := 0
 
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 
 	posts := make([]reddit.Post, 0, s.conf().MaxQueueSize)
@@ -118,7 +120,6 @@ func (s *Service) postProducer(postChannel chan *reddit.Post) error {
 			if len(posts) < s.conf().MaxQueueSize {
 				strikes++
 				if strikes >= strikeLimit {
-					log.Info().Msg("Exiting downloader")
 					close(postChannel)
 					return nil
 				}

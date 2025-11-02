@@ -20,8 +20,6 @@ type Service struct {
 	conf  ConfigProvider
 	store reddit.PostStore
 
-	updatePost UpdatePostFn
-
 	downloaderFnMap  map[string]Downloader
 	triggerChan      chan struct{}
 	Task             *schd.Scheduler
@@ -142,7 +140,7 @@ func (s *Service) deployWorkers(postChannel chan *reddit.Post) {
 			post.ErrorData = err.Error()
 		}
 
-		err = s.updatePost(post)
+		err = s.store.Save(post)
 		if err != nil {
 			subLogger.Err(err).Msg("failed to update post")
 		}

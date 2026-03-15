@@ -27,7 +27,7 @@ func NewClientService(conf ConfigProvider, cred *Credential, limitStore PostLimi
 		func() {
 			err := cli.GetAllSavedPosts()
 			if err != nil {
-				log.Warn().Msg("error occurred while getting saved posts")
+				log.Warn().Err(err).Msg("error occurred while getting saved posts")
 			}
 		},
 		interval,
